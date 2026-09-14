@@ -171,6 +171,11 @@ export function EntryForm({ materials, today }: Props) {
           {[errors.truckNumber, errors.ticketNumber, errors.tons].filter(Boolean).join(" ")}
         </p>
       )}
+      {!errors.tons && tonsNum !== null && tonsNum > 50 && (
+        <p className="mt-1 text-sm text-amber-700">
+          Unusually large load ({tonsNum} t — typical pit trucks haul 15–40 t). Please verify before saving.
+        </p>
+      )}
 
       <div className="mt-4 block text-sm font-medium">
         Customer *
