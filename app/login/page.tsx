@@ -17,12 +17,14 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const supabase = createClient();
+      // Emails are case-insensitive: normalize to defeat phone autocapitalize.
+      const cleanEmail = email.trim().toLowerCase();
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: cleanEmail,
         password,
       });
       if (signInError) {
-        setError("Invalid credentials.");
+        setError("Invalid credentials. Use lowercase email, no extra spaces.");
         return;
       }
       const {
@@ -54,6 +56,9 @@ export default function LoginPage() {
             type="email"
             required
             autoComplete="username"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="mt-1 w-full rounded-lg border px-3 py-2"
