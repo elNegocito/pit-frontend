@@ -2,10 +2,20 @@ import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { todayInPit } from "@/lib/timezone";
 import { EntryForm } from "@/components/EntryForm";
+import { TodaysTickets } from "@/components/TodaysTickets";
 import { SignOutButton } from "@/components/SignOutButton";
 
-export default async function EntryPage() {
+export default async function EntryPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   await requireUser();
+  const sp = await searchParams;
+  const raw = Array.isArray(sp.tpage) ? sp.tpage[0] : sp.tpage;
+  const tpage = Math.max(1, parseInt(raw || "1", 10) || 1);
+  const today = todayInPit();
+
   const supabase = await createClient();
   const { data: materials } = await supabase
     .from("materials")
@@ -22,7 +32,8 @@ export default async function EntryPage() {
         </div>
         <SignOutButton />
       </div>
-      <EntryForm materials={materials ?? []} today={todayInPit()} />
+      <EntryForm materials={materials ?? []} today={today} />
+      <TodaysTickets today={today} page={tpage} />
     </main>
   );
 }
