@@ -36,22 +36,20 @@ export function CustomerCombobox({ value, onChange, invalid }: Props) {
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(async () => {
       const q = value.trim();
-      if (q.length === 0) {
-        setOptions([]);
-        setExactMatch(null);
-        return;
-      }
       const supabase = createClient();
-      const { data } = await supabase
-        .from("customers")
-        .select("name")
-        .ilike("name", `%${q.replace(/[%_\\]/g, "")}%`)
-        .order("name")
-        .limit(8);
+      // Empty field => show the whole registry; typing => filter matches.
+      // (Pit scale: hundreds of customers max, a single query is cheap.)
+      let query = supabase.from("customers").select("name").order("name").limit(100);
+      if (q.length > 0) {
+        query = query.ilike("name", `%${q.replace(/[%_\\]/g, "")}%`);
+      }
+      const { data } = await query;
       const names = (data ?? []).map((r) => r.name);
       setOptions(names);
       const exact =
-        names.find((n) => n.toUpperCase() === q.replace(/\s+/g, " ").toUpperCase()) ?? null;
+        q.length > 0
+          ? (names.find((n) => n.toUpperCase() === q.replace(/\s+/g, " ").toUpperCase()) ?? null)
+          : null;
       setExactMatch(exact);
     }, 200);
     return () => {
