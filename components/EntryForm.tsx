@@ -23,6 +23,7 @@ export function EntryForm({ materials, today }: Props) {
   const [payment, setPayment] = useState<Payment>("COD");
   const [codMethod, setCodMethod] = useState<CodMethod>("CASH");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const truckRef = useRef<HTMLInputElement>(null);
@@ -46,6 +47,7 @@ export function EntryForm({ materials, today }: Props) {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrors({});
+    setErrorDetail(null);
     setNotice(null);
     const local: Record<string, string> = {};
     if (!materialId) local.materialId = "Select a material.";
@@ -76,6 +78,7 @@ export function EntryForm({ materials, today }: Props) {
       });
       if (!res.ok) {
         setErrors({ [res.field]: res.message });
+        setErrorDetail(res.detail ?? null);
         return;
       }
       setNotice(
@@ -98,6 +101,7 @@ export function EntryForm({ materials, today }: Props) {
     setTons("");
     setCustomer("");
     setErrors({});
+    setErrorDetail(null);
     setNotice(null);
     truckRef.current?.focus();
   }
@@ -210,6 +214,11 @@ export function EntryForm({ materials, today }: Props) {
       </div>
 
       {errors.form && <p className="mt-3 text-sm text-red-600">{errors.form}</p>}
+      {errorDetail && (
+        <p className="mt-1 rounded-lg bg-red-50 px-3 py-2 font-mono text-xs break-all text-red-700">
+          Detail: {errorDetail}
+        </p>
+      )}
       {notice && (
         <p className="mt-3 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800">{notice}</p>
       )}

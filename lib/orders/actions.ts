@@ -18,10 +18,13 @@ export interface EntryInput {
 
 export type EntryResult =
   | { ok: true; ticket: string; gross: number }
-  | { ok: false; field: string; message: string };
+  | { ok: false; field: string; message: string; detail?: string };
 
-function fail(field: string, message: string): EntryResult {
-  return { ok: false, field, message };
+function fail(field: string, message: string, detail?: string): EntryResult {
+  // Never silently swallow the backend error: the detail (Supabase message +
+  // code) is shown verbatim in the form so failures are diagnosable.
+  if (detail) console.error(`[createOrder:${field}]`, detail);
+  return { ok: false, field, message, detail };
 }
 
 /**
@@ -101,7 +104,13 @@ export async function createOrder(input: EntryInput): Promise<EntryResult> {
         .select("id")
         .eq("name_key", key)
         .maybeSingle();
-      if (!raced) return fail("customerName", "Could not save customer. Try again.");
+      if (!raced) {
+        return fail(
+          "customerName",
+          "Could not save customer.",
+          `${createError.message} (code ${createError.code ?? "?"})`,
+        );
+      }
       customerId = raced.id;
     } else {
       customerId = created.id;
@@ -128,9 +137,17 @@ export async function createOrder(input: EntryInput): Promise<EntryResult> {
     // 23505 on orders_ticket_key_uidx (or customers_name_key): the ticket
     // transcription already exists — never silently double-count a load.
     if (error.code === "23505") {
-      return fail("ticketNumber", `Ticket ${ticket} is already registered.`);
+      return fail(
+        "ticketNumber",
+        `Ticket ${ticket} is already registered.`,
+        error.message,
+      );
     }
-    return fail("form", "Could not save the ticket. Try again.");
+    return fail(
+      "form",
+      "Could not save the ticket.",
+      `${error.message} (code ${error.code ?? "?"})`,
+    );
   }
 
   return { ok: true, ticket: order.ticket_number, gross: Number(order.gross) };
