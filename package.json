@@ -29,6 +29,8 @@
     "typescript": "^5"
   },
   "onlyBuiltDependencies": [
+    "core-js",
+    "supabase",
     "unrs-resolver"
   ],
   "packageManager": "pnpm@11.22.0"

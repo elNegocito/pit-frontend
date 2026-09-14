@@ -1,4 +1,8 @@
 allowBuilds:
-  core-js: set this to true or false
+  core-js: true
   supabase: true
-  unrs-resolver: set this to true or false
+  unrs-resolver: true
+onlyBuiltDependencies:
+  - core-js
+  - supabase
+  - unrs-resolver
