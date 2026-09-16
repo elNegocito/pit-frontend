@@ -64,6 +64,9 @@ export function ExportButtons({ filters, sort, dir }: Props) {
       if (sort === "customer") q = q.order("name", { referencedTable: "customers", ascending });
       else if (sort === "material") q = q.order("name", { referencedTable: "materials", ascending });
       else q = q.order(sort, { ascending });
+      // Unique tiebreaker: without it, rows sharing the sort value can be
+      // duplicated or skipped across pages.
+      q = q.order("id", { ascending: true });
       const { data, error } = await q.range(page * PAGE, page * PAGE + PAGE - 1);
       if (error) throw error;
       const rows = ((data ?? []) as unknown as Array<{

@@ -37,27 +37,29 @@ export default async function DashboardPage({
     if (sort === "customer") q = q.order("name", { referencedTable: "customers", ascending });
     else if (sort === "material") q = q.order("name", { referencedTable: "materials", ascending });
     else q = q.order(sort, { ascending });
-    return q;
+    // Unique tiebreaker so pagination is stable when the sort column repeats.
+    return q.order("id", { ascending: true });
   }
 
   const from = (page - 1) * PAGE_SIZE;
   const { data: rows, count } = await filtered().range(from, from + PAGE_SIZE - 1);
 
-  // Totals over the whole filtered set (pit scale: a few thousand rows max).
-  const { data: all } = await (() => {
-    let q = supabase.from("orders").select("tons, gross");
-    if (filters.truck) q = q.ilike("truck_number", `%${filters.truck.replace(/[%_\\]/g, "")}%`);
-    if (filters.ticket) q = q.ilike("ticket_number", `%${filters.ticket.replace(/[%_\\]/g, "")}%`);
-    if (filters.customerId) q = q.eq("customer_id", filters.customerId);
-    if (filters.materialId) q = q.eq("material_id", filters.materialId);
-    if (filters.payment) q = q.eq("payment", filters.payment);
-    if (filters.codMethod) q = q.eq("cod_method", filters.codMethod);
-    if (filters.dateFrom) q = q.gte("date", filters.dateFrom);
-    if (filters.dateTo) q = q.lte("date", filters.dateTo);
-    return q;
-  })();
-  const totalTons = (all ?? []).reduce((s, r) => s + Number(r.tons), 0);
-  const totalGross = (all ?? []).reduce((s, r) => s + Number(r.gross), 0);
+  // Totals over the whole filtered set, aggregated in the database
+  // (fetching rows would be capped at max_rows = 1000).
+  const { data: totals } = await supabase
+    .rpc("orders_totals", {
+      p_truck: filters.truck.replace(/[%_\\]/g, "") || null,
+      p_ticket: filters.ticket.replace(/[%_\\]/g, "") || null,
+      p_customer_id: filters.customerId || null,
+      p_material_id: filters.materialId || null,
+      p_payment: filters.payment || null,
+      p_cod_method: filters.codMethod || null,
+      p_date_from: filters.dateFrom || null,
+      p_date_to: filters.dateTo || null,
+    })
+    .single<{ total_tons: number | string; total_gross: number | string }>();
+  const totalTons = Number(totals?.total_tons ?? 0);
+  const totalGross = Number(totals?.total_gross ?? 0);
 
   const [{ data: customers }, { data: materials }] = await Promise.all([
     supabase.from("customers").select("id, name").order("name"),
