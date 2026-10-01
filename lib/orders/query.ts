@@ -18,6 +18,7 @@ export interface OrderFilters {
   codMethod: string; // "" | CASH | CARD | CHECK
   dateFrom: string; // yyyy-MM-dd
   dateTo: string;
+  status: string; // "" | active | void | modified
 }
 
 export const EMPTY_FILTERS: OrderFilters = {
@@ -29,6 +30,7 @@ export const EMPTY_FILTERS: OrderFilters = {
   codMethod: "",
   dateFrom: "",
   dateTo: "",
+  status: "",
 };
 
 export function parseFilters(
@@ -57,6 +59,7 @@ export function parseFilters(
       codMethod: one(sp.codMethod),
       dateFrom: one(sp.dateFrom),
       dateTo: one(sp.dateTo),
+      status: one(sp.status),
     },
     sort: validSort.includes(sortRaw as SortKey)
       ? (sortRaw as SortKey)

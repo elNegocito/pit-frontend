@@ -151,6 +151,15 @@ export function OrdersFilters({ initial, sort, dir, customers, materials }: Prop
             <option value="CHECK">CHECK</option>
           </select>
         </label>
+        <label className="text-xs font-medium">
+          Status
+          <select value={f.status} onChange={(e) => set("status", e.target.value)} className={cls}>
+            <option value="">All</option>
+            <option value="active">Active</option>
+            <option value="modified">Modified by operator</option>
+            <option value="void">Void</option>
+          </select>
+        </label>
       </div>
       <div className="mt-3 flex gap-2">
         <button

@@ -60,7 +60,7 @@ export function CustomerCombobox({ value, onChange, invalid }: Props) {
   const isNew = value.trim().length > 0 && !exactMatch && options.length === 0;
 
   return (
-    <div ref={boxRef} className="relative">
+    <div ref={boxRef} className="relative mt-1">
       <input
         value={value}
         onChange={(e) => {
@@ -70,10 +70,11 @@ export function CustomerCombobox({ value, onChange, invalid }: Props) {
         onFocus={() => setOpen(true)}
         placeholder="Type to search or create…"
         autoComplete="off"
-        className={`w-full rounded-lg border px-3 py-2 text-base ${invalid ? "border-red-500" : ""}`}
+        className={`w-full rounded-xl border-2 bg-white py-2.5 pr-3 pl-9 text-sm font-extrabold text-slate-900 shadow-sm transition placeholder:font-semibold placeholder:text-slate-400 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 focus:outline-none ${invalid ? "border-red-400" : "border-pink-200 hover:border-pink-300"}`}
       />
+      <span className="pointer-events-none absolute top-[1.4rem] left-3 -translate-y-1/2 text-xs text-pink-400">⌕</span>
       {open && options.length > 0 && (
-        <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-lg border bg-white shadow-lg">
+        <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-xl border-2 border-pink-200 bg-white shadow-cute">
           {options.map((name) => (
             <li key={name}>
               <button
@@ -82,7 +83,7 @@ export function CustomerCombobox({ value, onChange, invalid }: Props) {
                   onChange(name);
                   setOpen(false);
                 }}
-                className="block w-full px-3 py-2 text-left text-base hover:bg-zinc-100"
+                className="block w-full px-3.5 py-2 text-left text-sm font-bold text-slate-800 hover:bg-pink-50 hover:text-pink-800"
               >
                 {name}
               </button>
@@ -91,10 +92,10 @@ export function CustomerCombobox({ value, onChange, invalid }: Props) {
         </ul>
       )}
       {exactMatch && (
-        <p className="mt-1 text-xs text-zinc-500">Matched: {exactMatch}</p>
+        <p className="mt-1 text-[11px] font-semibold text-pink-600">Matched: {exactMatch}</p>
       )}
       {isNew && (
-        <p className="mt-1 text-xs text-amber-700">
+        <p className="mt-1 text-[11px] font-bold text-amber-700">
           New customer — it will be created on save.
         </p>
       )}

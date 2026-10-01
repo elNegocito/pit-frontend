@@ -11,6 +11,12 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Operator screen theme (desing/stitch_hello_kitty_form_redesign) */
+  --font-kitty: var(--ff-nunito), "Quicksand", sans-serif;
+  --font-cute: var(--ff-quicksand), sans-serif;
+  --shadow-cute: 0 8px 24px -4px rgba(244, 63, 94, 0.15), 0 4px 8px -2px rgba(244, 63, 94, 0.08);
+  --shadow-cute-sm: 0 4px 12px rgba(244, 63, 94, 0.12);
 }
 
 /* NOTE: no prefers-color-scheme dark block on purpose. All surfaces are
@@ -32,4 +38,36 @@ textarea {
 
 input::placeholder {
   color: #a1a1aa;
+}
+
+/* Ticket printing: Letter sheet split in three by micro-perforations
+   (3 2/3" and 7 1/3"). Margins are handled inside each ticket. */
+@media print {
+  @page {
+    size: letter;
+    margin: 0;
+  }
+  html,
+  body {
+    background: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* Operator theme scrollbar (today's tickets list). */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #fdf2f8;
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #f472b6;
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #db2777;
 }

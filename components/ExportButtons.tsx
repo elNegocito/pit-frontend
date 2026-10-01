@@ -23,10 +23,14 @@ interface ExportRow {
   payment: string;
   cod_method: string;
   gross: number;
+  status: string;
+  modified: boolean;
+  order: string;
+  truck_gross: number | null;
 }
 
 const SELECT =
-  "date, truck_number, ticket_number, tons, payment, cod_method, gross, materials(name), customers(name)";
+  "date, truck_number, ticket_number, tons, payment, cod_method, gross, status, edited_at, job_order_code, truck_gross_tons, materials(name), customers(name)";
 
 function stamp(): string {
   const p = new Intl.DateTimeFormat("en-CA", {
@@ -61,6 +65,8 @@ export function ExportButtons({ filters, sort, dir }: Props) {
       if (filters.codMethod) q = q.eq("cod_method", filters.codMethod);
       if (filters.dateFrom) q = q.gte("date", filters.dateFrom);
       if (filters.dateTo) q = q.lte("date", filters.dateTo);
+      if (filters.status === "active" || filters.status === "void") q = q.eq("status", filters.status);
+      if (filters.status === "modified") q = q.not("edited_at", "is", null);
       if (sort === "customer") q = q.order("name", { referencedTable: "customers", ascending });
       else if (sort === "material") q = q.order("name", { referencedTable: "materials", ascending });
       else q = q.order(sort, { ascending });
@@ -77,6 +83,10 @@ export function ExportButtons({ filters, sort, dir }: Props) {
         payment: string;
         cod_method: string | null;
         gross: number;
+        status: string;
+        edited_at: string | null;
+        job_order_code: string | null;
+        truck_gross_tons: number | null;
         materials: { name: string } | { name: string }[] | null;
         customers: { name: string } | { name: string }[] | null;
       }>).map((r) => ({
@@ -99,6 +109,10 @@ export function ExportButtons({ filters, sort, dir }: Props) {
           payment: r.payment,
           cod_method: r.cod_method ?? "",
           gross: Number(r.gross),
+          status: r.status,
+          modified: r.edited_at !== null,
+          order: r.job_order_code ?? "",
+          truck_gross: r.truck_gross_tons === null ? null : Number(r.truck_gross_tons),
         })),
       );
       if (rows.length < PAGE) break;
@@ -119,10 +133,10 @@ export function ExportButtons({ filters, sort, dir }: Props) {
     setBusy("csv");
     try {
       const rows = await fetchAll();
-      const header = "date,customer,material,truck,ticket,tons,payment,cod_method,gross";
+      const header = "date,customer,material,truck,ticket,tons,payment,cod_method,gross,status,modified,order,truck_gross_tons,tare_tons";
       const esc = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;
       const lines = rows.map((r) =>
-        [r.date, esc(r.customer), esc(r.material), esc(r.truck_number), esc(r.ticket_number), r.tons.toFixed(2), r.payment, r.cod_method, r.gross.toFixed(2)].join(","),
+        [r.date, esc(r.customer), esc(r.material), esc(r.truck_number), esc(r.ticket_number), r.tons.toFixed(2), r.payment, r.cod_method, r.gross.toFixed(2), r.status, r.modified ? "yes" : "", esc(r.order), r.truck_gross?.toFixed(2) ?? "", r.truck_gross === null ? "" : (r.truck_gross - r.tons).toFixed(2)].join(","),
       );
       download(new Blob([[header, ...lines].join("\n")], { type: "text/csv" }), `ASG_Orders_${stamp()}.csv`);
     } finally {
@@ -135,8 +149,10 @@ export function ExportButtons({ filters, sort, dir }: Props) {
     try {
       const rows = await fetchAll();
       const doc = new jsPDF({ orientation: "landscape" });
-      const totalTons = rows.reduce((s, r) => s + r.tons, 0);
-      const totalGross = rows.reduce((s, r) => s + r.gross, 0);
+      // Void tickets are listed but never counted.
+      const counted = rows.filter((r) => r.status !== "void");
+      const totalTons = counted.reduce((s, r) => s + r.tons, 0);
+      const totalGross = counted.reduce((s, r) => s + r.gross, 0);
       doc.setFontSize(14);
       doc.text("ASG Operations — PIT #2 — Orders", 14, 14);
       doc.setFontSize(9);
@@ -147,7 +163,7 @@ export function ExportButtons({ filters, sort, dir }: Props) {
       );
       autoTable(doc, {
         startY: 24,
-        head: [["Date", "Customer", "Material", "Truck #", "Ticket", "Tons", "Payment", "COD", "Gross $"]],
+        head: [["Date", "Customer", "Material", "Truck #", "Ticket", "Tons", "Payment", "COD", "Gross $", "Status"]],
         body: rows.map((r) => [
           r.date,
           r.customer,
@@ -158,6 +174,7 @@ export function ExportButtons({ filters, sort, dir }: Props) {
           r.payment,
           r.cod_method,
           r.gross.toFixed(2),
+          r.status === "void" ? "VOID" : r.modified ? "Modified" : "",
         ]),
         styles: { fontSize: 8 },
       });

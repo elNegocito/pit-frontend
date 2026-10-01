@@ -83,3 +83,85 @@ export async function mergeCustomers(_prev: FormState, form: FormData): Promise<
   revalidatePath("/customers");
   return null;
 }
+
+function parseTruck(form: FormData): { truck_number: string; gross_tons: number } | string {
+  const truck = String(form.get("truck") ?? "").trim();
+  const gross = Number(form.get("gross"));
+  if (truck.length < 1 || truck.length > 40) return "Truck # required (max 40).";
+  if (!Number.isFinite(gross) || gross <= 0 || gross > 200) return "Gross must be between 0 and 200 tons.";
+  return { truck_number: truck, gross_tons: Math.round(gross * 100) / 100 };
+}
+
+export async function createTruck(_prev: FormState, form: FormData): Promise<FormState> {
+  const supabase = await admin();
+  const parsed = parseTruck(form);
+  if (typeof parsed === "string") return parsed;
+  const { error } = await supabase.from("trucks").insert(parsed);
+  if (error) {
+    if (error.code === "23505") return `Truck ${parsed.truck_number} already exists.`;
+    return "Could not create truck.";
+  }
+  revalidatePath("/trucks");
+  return null;
+}
+
+export async function updateTruck(_prev: FormState, form: FormData): Promise<FormState> {
+  const supabase = await admin();
+  const id = String(form.get("id") ?? "");
+  if (!id) return "Missing id.";
+  const parsed = parseTruck(form);
+  if (typeof parsed === "string") return parsed;
+  // Tickets already saved keep the gross they were printed with.
+  const { error } = await supabase
+    .from("trucks")
+    .update({ ...parsed, active: form.get("active") === "on" })
+    .eq("id", id);
+  if (error) {
+    if (error.code === "23505") return `Truck ${parsed.truck_number} already exists.`;
+    return "Could not update truck.";
+  }
+  revalidatePath("/trucks");
+  return null;
+}
+
+function parseJobOrder(form: FormData): { code: string; customer_id: string } | string {
+  const code = String(form.get("code") ?? "").trim().replace(/\s+/g, " ");
+  const customerId = String(form.get("customerId") ?? "");
+  if (code.length < 1 || code.length > 80) return "Order code required (max 80).";
+  if (!customerId) return "Select a customer.";
+  return { code, customer_id: customerId };
+}
+
+function jobOrderError(error: { code?: string; message: string }): string {
+  if (error.code === "23505") {
+    return error.message.includes("customer_id")
+      ? "That customer already has an order (one order per customer)."
+      : "That order code already exists.";
+  }
+  return "Could not save order.";
+}
+
+export async function createJobOrder(_prev: FormState, form: FormData): Promise<FormState> {
+  const supabase = await admin();
+  const parsed = parseJobOrder(form);
+  if (typeof parsed === "string") return parsed;
+  const { error } = await supabase.from("job_orders").insert(parsed);
+  if (error) return jobOrderError(error);
+  revalidatePath("/job-orders");
+  return null;
+}
+
+export async function updateJobOrder(_prev: FormState, form: FormData): Promise<FormState> {
+  const supabase = await admin();
+  const id = String(form.get("id") ?? "");
+  if (!id) return "Missing id.";
+  const parsed = parseJobOrder(form);
+  if (typeof parsed === "string") return parsed;
+  const { error } = await supabase
+    .from("job_orders")
+    .update({ ...parsed, active: form.get("active") === "on" })
+    .eq("id", id);
+  if (error) return jobOrderError(error);
+  revalidatePath("/job-orders");
+  return null;
+}

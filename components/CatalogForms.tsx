@@ -2,13 +2,17 @@
 
 import { useActionState } from "react";
 import {
+  createJobOrder,
   createMaterial,
+  createTruck,
   mergeCustomers,
   renameCustomer,
+  updateJobOrder,
   updateMaterial,
+  updateTruck,
   type FormState,
 } from "@/lib/catalogs/actions";
-import type { Customer, Material } from "@/lib/types";
+import type { Customer, JobOrder, Material, Truck } from "@/lib/types";
 
 function ErrorLine({ state }: { state: FormState }) {
   if (!state) return null;
@@ -109,6 +113,115 @@ export function CustomerRenameForm({ customer }: { customer: Customer }) {
       <button disabled={pending} className="rounded-lg border px-4 py-2 text-sm hover:bg-zinc-100 disabled:opacity-50">
         Rename
       </button>
+      <ErrorLine state={state} />
+    </form>
+  );
+}
+
+export function TruckCreateForm() {
+  const [state, action, pending] = useActionState(createTruck, null);
+  return (
+    <form action={action} className="rounded-2xl bg-white p-4 shadow">
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="flex-1 text-sm font-medium">
+          New truck #
+          <input name="truck" required maxLength={40} placeholder="e.g. 222" className="mt-1 w-full rounded-lg border px-3 py-2" />
+        </label>
+        <label className="text-sm font-medium">
+          Gross (tons)
+          <input name="gross" required type="number" min="0.01" max="200" step="0.01" placeholder="40" className="mt-1 w-32 rounded-lg border px-3 py-2" />
+        </label>
+        <button disabled={pending} className="rounded-lg bg-zinc-900 px-5 py-2 text-sm font-medium text-white disabled:opacity-50">
+          Add
+        </button>
+      </div>
+      <ErrorLine state={state} />
+    </form>
+  );
+}
+
+export function TruckRowForm({ truck }: { truck: Truck }) {
+  const [state, action, pending] = useActionState(updateTruck, null);
+  return (
+    <form action={action} className="rounded-2xl bg-white p-4 shadow">
+      <div className="flex flex-wrap items-end gap-3">
+        <input type="hidden" name="id" value={truck.id} />
+        <label className="flex-1 text-sm font-medium">
+          Truck #
+          <input name="truck" defaultValue={truck.truck_number} required maxLength={40} className="mt-1 w-full rounded-lg border px-3 py-2" />
+        </label>
+        <label className="text-sm font-medium">
+          Gross (tons)
+          <input name="gross" type="number" min="0.01" max="200" step="0.01" defaultValue={Number(truck.gross_tons)} className="mt-1 w-32 rounded-lg border px-3 py-2" />
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" name="active" defaultChecked={truck.active} className="h-4 w-4" />
+          Active
+        </label>
+        <button disabled={pending} className="rounded-lg border px-4 py-2 text-sm hover:bg-zinc-100 disabled:opacity-50">
+          Save
+        </button>
+      </div>
+      <ErrorLine state={state} />
+    </form>
+  );
+}
+
+function CustomerSelect({ customers, defaultValue }: { customers: Customer[]; defaultValue?: string }) {
+  return (
+    <select name="customerId" required defaultValue={defaultValue ?? ""} className="mt-1 w-full rounded-lg border px-3 py-2">
+      <option value="" disabled>Select…</option>
+      {customers.map((c) => (
+        <option key={c.id} value={c.id}>{c.name}</option>
+      ))}
+    </select>
+  );
+}
+
+export function JobOrderCreateForm({ customers }: { customers: Customer[] }) {
+  const [state, action, pending] = useActionState(createJobOrder, null);
+  return (
+    <form action={action} className="rounded-2xl bg-white p-4 shadow">
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="flex-1 text-sm font-medium">
+          New order
+          <input name="code" required maxLength={80} placeholder="e.g. 11-911-AMRIZE-OPEN" className="mt-1 w-full rounded-lg border px-3 py-2" />
+        </label>
+        <label className="flex-1 text-sm font-medium">
+          Customer
+          <CustomerSelect customers={customers} />
+        </label>
+        <button disabled={pending} className="rounded-lg bg-zinc-900 px-5 py-2 text-sm font-medium text-white disabled:opacity-50">
+          Add
+        </button>
+      </div>
+      <ErrorLine state={state} />
+    </form>
+  );
+}
+
+export function JobOrderRowForm({ order, customers }: { order: JobOrder; customers: Customer[] }) {
+  const [state, action, pending] = useActionState(updateJobOrder, null);
+  return (
+    <form action={action} className="rounded-2xl bg-white p-4 shadow">
+      <div className="flex flex-wrap items-end gap-3">
+        <input type="hidden" name="id" value={order.id} />
+        <label className="flex-1 text-sm font-medium">
+          Order
+          <input name="code" defaultValue={order.code} required maxLength={80} className="mt-1 w-full rounded-lg border px-3 py-2" />
+        </label>
+        <label className="flex-1 text-sm font-medium">
+          Customer
+          <CustomerSelect customers={customers} defaultValue={order.customer_id} />
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" name="active" defaultChecked={order.active} className="h-4 w-4" />
+          Active
+        </label>
+        <button disabled={pending} className="rounded-lg border px-4 py-2 text-sm hover:bg-zinc-100 disabled:opacity-50">
+          Save
+        </button>
+      </div>
       <ErrorLine state={state} />
     </form>
   );
