@@ -128,8 +128,8 @@ export function TruckCreateForm() {
           <input name="truck" required maxLength={40} placeholder="e.g. 222" className="mt-1 w-full rounded-lg border px-3 py-2" />
         </label>
         <label className="text-sm font-medium">
-          Gross (tons)
-          <input name="gross" required type="number" min="0.01" max="200" step="0.01" placeholder="40" className="mt-1 w-32 rounded-lg border px-3 py-2" />
+          Tare (tons, empty)
+          <input name="tare" required type="number" min="0.01" max="200" step="0.01" placeholder="15" className="mt-1 w-32 rounded-lg border px-3 py-2" />
         </label>
         <button disabled={pending} className="rounded-lg bg-zinc-900 px-5 py-2 text-sm font-medium text-white disabled:opacity-50">
           Add
@@ -151,8 +151,8 @@ export function TruckRowForm({ truck }: { truck: Truck }) {
           <input name="truck" defaultValue={truck.truck_number} required maxLength={40} className="mt-1 w-full rounded-lg border px-3 py-2" />
         </label>
         <label className="text-sm font-medium">
-          Gross (tons)
-          <input name="gross" type="number" min="0.01" max="200" step="0.01" defaultValue={Number(truck.gross_tons)} className="mt-1 w-32 rounded-lg border px-3 py-2" />
+          Tare (tons, empty)
+          <input name="tare" type="number" min="0.01" max="200" step="0.01" defaultValue={Number(truck.tare_tons)} className="mt-1 w-32 rounded-lg border px-3 py-2" />
         </label>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" name="active" defaultChecked={truck.active} className="h-4 w-4" />

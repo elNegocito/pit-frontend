@@ -26,14 +26,14 @@ function Field({ label, value, strong }: { label: string; value: string; strong?
  * preview next to the entry form (scaled) and for the 3-up print sheet.
  */
 export function TicketView({ t }: { t: TicketPrintData }) {
-  const w = ticketWeights(t.truckGrossTons, t.netTons);
+  const w = ticketWeights(t.truckTareTons, t.netTons);
   const time = formatTicketTime(t.createdAt ? new Date(t.createdAt) : new Date());
   const rows: { label: string; tons: number | null }[] = [
     { label: "Gross", tons: w.gross },
     { label: "Tare", tons: w.tare },
     { label: "Net", tons: w.net },
   ];
-  const showWeights = t.truckGrossTons !== null;
+  const showWeights = t.truckTareTons !== null;
 
   return (
     <div

@@ -13,7 +13,7 @@ import Link from "next/link";
 const PAGE_SIZE = 50;
 
 const SELECT =
-  "id, date, material_id, truck_number, ticket_number, tons, customer_id, payment, cod_method, gross, created_at, status, edited_at, edit_count, job_order_code, truck_gross_tons, materials(name), customers(name)";
+  "id, date, material_id, truck_number, ticket_number, tons, customer_id, payment, cod_method, gross, created_at, status, edited_at, edit_count, job_order_code, truck_tare_tons, materials(name), customers(name)";
 
 export default async function DashboardPage({
   searchParams,

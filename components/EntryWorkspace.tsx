@@ -11,7 +11,7 @@ import { TodaysTickets, type TodayRow } from "./TodaysTickets";
 
 interface Props {
   materials: Material[];
-  trucks: { truck_number: string; gross_tons: number }[];
+  trucks: { truck_number: string; tare_tons: number }[];
   jobOrders: { code: string; customer: string }[];
   today: string;
   weighmaster: string;
@@ -31,10 +31,10 @@ export function EntryWorkspace({ materials, trucks, jobOrders, today, weighmaste
   const [printNonce, setPrintNonce] = useState(0);
   const [listError, setListError] = useState<string | null>(null);
 
-  const truckGross = useMemo(() => {
+  const truckTare = useMemo(() => {
     const key = normalizeTicket(values.truck);
     const t = key ? trucks.find((x) => normalizeTicket(x.truck_number) === key) : undefined;
-    return t ? Number(t.gross_tons) : null;
+    return t ? Number(t.tare_tons) : null;
   }, [trucks, values.truck]);
 
   const orderCode = useMemo(() => {
@@ -56,7 +56,7 @@ export function EntryWorkspace({ materials, trucks, jobOrders, today, weighmaste
     poNumber: values.poNumber,
     jobNumber: values.jobNumber,
     netTons: parseTons(values.tons),
-    truckGrossTons: truckGross,
+    truckTareTons: truckTare,
     payment: values.payment,
     codMethod: values.payment === "COD" ? values.codMethod : null,
     customerLoads: editing?.customerLoads ?? null,
@@ -132,7 +132,7 @@ export function EntryWorkspace({ materials, trucks, jobOrders, today, weighmaste
             today={today}
             values={values}
             onChange={setValues}
-            truckGross={truckGross}
+            truckTare={truckTare}
             editing={editing}
             onSaved={onSaved}
             onCancelEdit={() => {

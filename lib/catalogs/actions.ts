@@ -84,12 +84,12 @@ export async function mergeCustomers(_prev: FormState, form: FormData): Promise<
   return null;
 }
 
-function parseTruck(form: FormData): { truck_number: string; gross_tons: number } | string {
+function parseTruck(form: FormData): { truck_number: string; tare_tons: number } | string {
   const truck = String(form.get("truck") ?? "").trim();
-  const gross = Number(form.get("gross"));
+  const tare = Number(form.get("tare"));
   if (truck.length < 1 || truck.length > 40) return "Truck # required (max 40).";
-  if (!Number.isFinite(gross) || gross <= 0 || gross > 200) return "Gross must be between 0 and 200 tons.";
-  return { truck_number: truck, gross_tons: Math.round(gross * 100) / 100 };
+  if (!Number.isFinite(tare) || tare <= 0 || tare > 200) return "Tare must be between 0 and 200 tons.";
+  return { truck_number: truck, tare_tons: Math.round(tare * 100) / 100 };
 }
 
 export async function createTruck(_prev: FormState, form: FormData): Promise<FormState> {
@@ -111,7 +111,7 @@ export async function updateTruck(_prev: FormState, form: FormData): Promise<For
   if (!id) return "Missing id.";
   const parsed = parseTruck(form);
   if (typeof parsed === "string") return parsed;
-  // Tickets already saved keep the gross they were printed with.
+  // Tickets already saved keep the tare they were printed with.
   const { error } = await supabase
     .from("trucks")
     .update({ ...parsed, active: form.get("active") === "on" })

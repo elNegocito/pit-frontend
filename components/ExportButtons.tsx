@@ -26,11 +26,11 @@ interface ExportRow {
   status: string;
   modified: boolean;
   order: string;
-  truck_gross: number | null;
+  truck_tare: number | null;
 }
 
 const SELECT =
-  "date, truck_number, ticket_number, tons, payment, cod_method, gross, status, edited_at, job_order_code, truck_gross_tons, materials(name), customers(name)";
+  "date, truck_number, ticket_number, tons, payment, cod_method, gross, status, edited_at, job_order_code, truck_tare_tons, materials(name), customers(name)";
 
 function stamp(): string {
   const p = new Intl.DateTimeFormat("en-CA", {
@@ -86,7 +86,7 @@ export function ExportButtons({ filters, sort, dir }: Props) {
         status: string;
         edited_at: string | null;
         job_order_code: string | null;
-        truck_gross_tons: number | null;
+        truck_tare_tons: number | null;
         materials: { name: string } | { name: string }[] | null;
         customers: { name: string } | { name: string }[] | null;
       }>).map((r) => ({
@@ -112,7 +112,7 @@ export function ExportButtons({ filters, sort, dir }: Props) {
           status: r.status,
           modified: r.edited_at !== null,
           order: r.job_order_code ?? "",
-          truck_gross: r.truck_gross_tons === null ? null : Number(r.truck_gross_tons),
+          truck_tare: r.truck_tare_tons === null ? null : Number(r.truck_tare_tons),
         })),
       );
       if (rows.length < PAGE) break;
@@ -133,10 +133,10 @@ export function ExportButtons({ filters, sort, dir }: Props) {
     setBusy("csv");
     try {
       const rows = await fetchAll();
-      const header = "date,customer,material,truck,ticket,tons,payment,cod_method,gross,status,modified,order,truck_gross_tons,tare_tons";
+      const header = "date,customer,material,truck,ticket,tons,payment,cod_method,gross,status,modified,order,tare_tons,gross_tons";
       const esc = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;
       const lines = rows.map((r) =>
-        [r.date, esc(r.customer), esc(r.material), esc(r.truck_number), esc(r.ticket_number), r.tons.toFixed(2), r.payment, r.cod_method, r.gross.toFixed(2), r.status, r.modified ? "yes" : "", esc(r.order), r.truck_gross?.toFixed(2) ?? "", r.truck_gross === null ? "" : (r.truck_gross - r.tons).toFixed(2)].join(","),
+        [r.date, esc(r.customer), esc(r.material), esc(r.truck_number), esc(r.ticket_number), r.tons.toFixed(2), r.payment, r.cod_method, r.gross.toFixed(2), r.status, r.modified ? "yes" : "", esc(r.order), r.truck_tare?.toFixed(2) ?? "", r.truck_tare === null ? "" : (r.truck_tare + r.tons).toFixed(2)].join(","),
       );
       download(new Blob([[header, ...lines].join("\n")], { type: "text/csv" }), `ASG_Orders_${stamp()}.csv`);
     } finally {

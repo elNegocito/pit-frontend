@@ -41,8 +41,8 @@ interface Props {
   today: string;
   values: EntryValues;
   onChange: (v: EntryValues) => void;
-  /** Gross of the typed truck when it is registered (for hints). */
-  truckGross: number | null;
+  /** Tare (empty weight) of the typed truck when it is registered (for hints). */
+  truckTare: number | null;
   /** Ticket being corrected; null = new ticket. */
   editing: TicketPrintData | null;
   onSaved: (ticket: TicketPrintData, print: boolean) => void;
@@ -62,7 +62,7 @@ export function EntryForm({
   today,
   values,
   onChange,
-  truckGross,
+  truckTare,
   editing,
   onSaved,
   onCancelEdit,
@@ -256,19 +256,14 @@ export function EntryForm({
       )}
       {truck.trim() !== "" && (
         <p className="mt-1 text-xs font-semibold text-pink-700/80">
-          {truckGross !== null
-            ? `Registered truck — gross ${truckGross.toFixed(2)} t (ticket shows Gross / Tare / Net).`
+          {truckTare !== null
+            ? `Registered truck — tare ${truckTare.toFixed(2)} t (ticket shows Gross / Tare / Net, Gross = Tare + Net).`
             : "Truck not registered — ticket shows Net only."}
         </p>
       )}
       {!errors.tons && tonsNum !== null && tonsNum > 50 && (
         <p className="mt-1 text-xs font-bold text-amber-700">
           Unusually large load ({tonsNum} t — typical pit trucks haul 15–40 t). Please verify before saving.
-        </p>
-      )}
-      {truckGross !== null && tonsNum !== null && tonsNum >= truckGross && (
-        <p className="mt-1 text-xs font-bold text-amber-700">
-          Net ({tonsNum} t) is not below the truck gross ({truckGross} t): tare would be zero or negative. Please verify.
         </p>
       )}
 

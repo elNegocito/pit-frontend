@@ -9,7 +9,7 @@ export default async function TrucksPage() {
   const supabase = await createClient();
   const { data: trucks } = await supabase
     .from("trucks")
-    .select("id, truck_number, gross_tons, active")
+    .select("id, truck_number, tare_tons, active")
     .order("truck_number");
 
   return (
@@ -18,7 +18,7 @@ export default async function TrucksPage() {
         <div>
           <h1 className="text-lg font-semibold">Trucks</h1>
           <p className="text-sm text-zinc-500">
-            Registered trucks print Gross / Tare / Net (Tare = Gross − Net). Others print Net only.
+            Registered trucks print Gross / Tare / Net (Gross = Tare + Net, Tare = empty truck). Others print Net only.
           </p>
         </div>
         <div className="flex gap-2">

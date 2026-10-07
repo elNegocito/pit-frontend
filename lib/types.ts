@@ -35,7 +35,7 @@ export interface OrderRow {
   edited_at: string | null;
   edit_count: number;
   job_order_code: string | null;
-  truck_gross_tons: number | null;
+  truck_tare_tons: number | null;
   materials: { name: string } | null;
   customers: { name: string } | null;
 }
@@ -45,7 +45,7 @@ export type TicketStatus = "active" | "void";
 export interface Truck {
   id: string;
   truck_number: string;
-  gross_tons: number;
+  tare_tons: number;
   active: boolean;
 }
 
@@ -81,7 +81,7 @@ export interface TicketPrintData {
   poNumber: string;
   jobNumber: string;
   netTons: number | null;
-  truckGrossTons: number | null; // from the truck registry; null = not registered
+  truckTareTons: number | null; // from the truck registry; null = not registered
   payment: Payment;
   codMethod: CodMethod | null;
   customerLoads: number | null;

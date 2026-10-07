@@ -34,7 +34,7 @@ export default async function EntryPage({
   const [{ data: materials }, { data: trucks }, { data: jobOrders }, { data: profile }, { data: authData }, todayRes] =
     await Promise.all([
       supabase.from("materials").select("id, name, price_per_ton, active").eq("active", true).order("name"),
-      supabase.from("trucks").select("truck_number, gross_tons").eq("active", true).order("truck_number"),
+      supabase.from("trucks").select("truck_number, tare_tons").eq("active", true).order("truck_number"),
       supabase.from("job_orders").select("code, customers(name)").eq("active", true),
       supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
       supabase.auth.getUser(),
@@ -103,7 +103,7 @@ export default async function EntryPage({
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8 print:p-0">
         <EntryWorkspace
           materials={materials ?? []}
-          trucks={(trucks ?? []).map((t) => ({ truck_number: t.truck_number, gross_tons: Number(t.gross_tons) }))}
+          trucks={(trucks ?? []).map((t) => ({ truck_number: t.truck_number, tare_tons: Number(t.tare_tons) }))}
           jobOrders={(jobOrders ?? []).map((o) => ({ code: o.code, customer: nameOf(o.customers as Named) }))}
           today={today}
           weighmaster={weighmaster}

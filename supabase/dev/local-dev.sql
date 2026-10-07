@@ -46,9 +46,9 @@ END;
 $$;
 
 -- Sample catalog (from the client's Excel "BASE" and "Sheet3").
-INSERT INTO public.trucks (truck_number, gross_tons) VALUES
-  ('222', 40.00),
-  ('1100', 41.79)
+INSERT INTO public.trucks (truck_number, tare_tons) VALUES
+  ('222', 14.50),
+  ('1100', 17.41)
 ON CONFLICT (truck_key) DO NOTHING;
 
 INSERT INTO public.customers (name) VALUES ('0911-HOLCIM'), ('EGW Services')
