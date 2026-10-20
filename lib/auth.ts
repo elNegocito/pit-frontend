@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { homeFor } from "@/lib/roles";
 import type { Role } from "@/lib/types";
 
 /** Session user + role. Redirects to /login when signed out. */
@@ -22,6 +23,20 @@ export async function requireUser(): Promise<{ id: string; role: Role }> {
 
 export async function requireAdmin(): Promise<{ id: string }> {
   const u = await requireUser();
-  if (u.role !== "admin") redirect("/entry");
+  if (u.role !== "admin") redirect(homeFor(u.role));
+  return u;
+}
+
+/** Ticket screens (operator + admin). Payroll users never see tickets. */
+export async function requireTicketUser(): Promise<{ id: string; role: Role }> {
+  const u = await requireUser();
+  if (u.role === "payroll") redirect(homeFor(u.role));
+  return u;
+}
+
+/** Driver payroll screens (payroll + admin). */
+export async function requirePayroll(): Promise<{ id: string; role: Role }> {
+  const u = await requireUser();
+  if (u.role !== "payroll" && u.role !== "admin") redirect(homeFor(u.role));
   return u;
 }

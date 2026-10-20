@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin, requireTicketUser } from "@/lib/auth";
 import { normalizeName, normalizeTicket } from "@/lib/normalize";
 import { todayInPit } from "@/lib/timezone";
 import type { CodMethod, Payment, TicketPrintData, TicketStatus } from "@/lib/types";
@@ -188,6 +188,8 @@ async function loadTicket(supabase: Supabase, id: string): Promise<TicketPrintDa
  * Returns the stored ticket, ready to print.
  */
 export async function createOrder(input: EntryInput): Promise<EntryResult> {
+  // RLS lets any signed-in user insert tickets; payroll users must not.
+  await requireTicketUser();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) {
     return fail("date", "Invalid date.");
   }

@@ -1,4 +1,4 @@
-import { requireUser } from "@/lib/auth";
+import { requireTicketUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatPitDate, todayInPit } from "@/lib/timezone";
 import { EntryWorkspace } from "@/components/EntryWorkspace";
@@ -23,7 +23,7 @@ export default async function EntryPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const user = await requireUser();
+  const user = await requireTicketUser();
   const sp = await searchParams;
   const raw = Array.isArray(sp.tpage) ? sp.tpage[0] : sp.tpage;
   const tpage = Math.max(1, parseInt(raw || "1", 10) || 1);

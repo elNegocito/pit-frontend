@@ -75,6 +75,10 @@ Esto crea:
 |---|---|---|---|
 | `admin@asgoperations.com` | `password123` | admin | DANIEL |
 | `operator@asgoperations.com` | `password123` | operator | IVONNE |
+| `payroll1@asgoperations.com` | `password123` | payroll | PAYROLL 1 |
+| `payroll2@asgoperations.com` | `password123` | payroll | PAYROLL 2 |
+
+Plus 3 drivers from the Excel "PAYROLL MODELOS" (one per pay model) for `/payroll`.
 
 Y además: truck **222** con gross **40 t**, truck **1100** con gross **41.79 t**, customer **0911-HOLCIM** con order **11-911-AMRIZE-OPEN**, customer **EGW Services** sin order. La numeración automática arranca en **46285** (simula los tickets que ya hay en producción).
 
@@ -163,6 +167,16 @@ Orden recomendado:
    ```
 4. Merge de la rama a `main` → Vercel despliega solo.
 5. El admin carga los trucks en `/trucks` y las orders en `/job-orders`.
+
+## 9b. Payroll (migración 008) a producción
+
+1. Respaldo (igual que arriba) y `pnpm supabase db push` → aplica solo `008_payroll.sql` (solo **agrega** tablas; lo único que toca de lo existente es permitir el rol `payroll` en `profiles.role`).
+2. Crear los 2 usuarios de payroll en Supabase Auth (Authentication > Users > Create user) y darles el rol y su nombre (es el que sale en el historial):
+   ```sql
+   INSERT INTO public.profiles (id, role, display_name)
+   SELECT id, 'payroll', '<NOMBRE>' FROM auth.users WHERE email = '<email>';
+   ```
+3. Merge a `main` → Vercel despliega. Cargar los drivers en `/payroll/drivers`.
 
 ## 10. Apagar todo
 

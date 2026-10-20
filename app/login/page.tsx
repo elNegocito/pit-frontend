@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { homeFor } from "@/lib/roles";
+import type { Role } from "@/lib/types";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -36,7 +38,7 @@ export default function LoginPage() {
         .select("role")
         .eq("id", user!.id)
         .single();
-      router.replace(profile?.role === "operator" ? "/entry" : "/dashboard");
+      router.replace(homeFor(profile?.role as Role | undefined));
       router.refresh();
     } finally {
       setLoading(false);

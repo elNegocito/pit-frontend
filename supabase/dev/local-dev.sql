@@ -1,5 +1,5 @@
 -- LOCAL DEVELOPMENT ONLY — never run against production.
--- Creates the two app users (password: password123), their roles and
+-- Creates the app users (admin, operator, two payroll) (password: password123), their roles and
 -- weighmaster names, plus sample trucks / customers / project orders so the
 -- printable ticket can be tested right away.
 --
@@ -14,7 +14,10 @@ BEGIN
   FOR u IN
     SELECT * FROM (VALUES
       ('admin@asgoperations.com', 'admin', 'DANIEL'),
-      ('operator@asgoperations.com', 'operator', 'IVONNE')
+      ('operator@asgoperations.com', 'operator', 'IVONNE'),
+      -- The two people who prepare driver pay (each sheet records who did it).
+      ('payroll1@asgoperations.com', 'payroll', 'PAYROLL 1'),
+      ('payroll2@asgoperations.com', 'payroll', 'PAYROLL 2')
     ) AS t(email, role, display_name)
   LOOP
     SELECT id INTO uid FROM auth.users WHERE email = u.email;
@@ -65,3 +68,10 @@ SELECT setval(
   GREATEST(nextval('public.ticket_number_seq'), 46285),
   false
 );
+
+-- Sample drivers (from the client's Excel "PAYROLL MODELOS").
+INSERT INTO public.drivers (name, pay_model, truck_number) VALUES
+  ('MALQUIER BELLO DOMINGUEZ', 'flatbed', '2130'),
+  ('MICHAEL DUOP', 'mixer', '2160'),
+  ('LATASHA TURNER', 'trucking', '2154')
+ON CONFLICT (name_key) DO NOTHING;

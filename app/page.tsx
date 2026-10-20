@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { homeFor } from "@/lib/roles";
+import type { Role } from "@/lib/types";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -14,5 +16,5 @@ export default async function Home() {
     .eq("id", user.id)
     .single();
 
-  redirect(profile?.role === "operator" ? "/entry" : "/dashboard");
+  redirect(homeFor(profile?.role as Role | undefined));
 }

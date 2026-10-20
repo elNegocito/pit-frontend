@@ -58,3 +58,16 @@ export function pitDayStartUtc(isoDate: string): string {
   const offsetMin = match ? (match[1] === "-" ? -1 : 1) * (Number(match[2]) * 60 + Number(match[3])) : 0;
   return new Date(Date.UTC(y, m - 1, d) - offsetMin * 60000).toISOString();
 }
+
+/** `isoDate` shifted by `days` calendar days (yyyy-MM-dd in, yyyy-MM-dd out). */
+export function addDays(isoDate: string, days: number): string {
+  const [y, m, d] = isoDate.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+}
+
+/** Drivers are paid on Fridays: today when it is Friday, else the next one. */
+export function upcomingFriday(isoDate: string): string {
+  const [y, m, d] = isoDate.split("-").map(Number);
+  const weekday = new Date(Date.UTC(y, m - 1, d)).getUTCDay(); // 0 = Sunday
+  return addDays(isoDate, (5 - weekday + 7) % 7);
+}

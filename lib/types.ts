@@ -1,4 +1,4 @@
-export type Role = "admin" | "operator";
+export type Role = "admin" | "operator" | "payroll";
 export type Payment = "ACCOUNT" | "COD";
 export type CodMethod = "CASH" | "CARD" | "CHECK";
 

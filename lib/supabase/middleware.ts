@@ -1,7 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_PREFIXES = ["/entry", "/dashboard", "/admin", "/materials", "/customers"];
+const PROTECTED_PREFIXES = [
+  "/entry",
+  "/dashboard",
+  "/admin",
+  "/materials",
+  "/customers",
+  "/trucks",
+  "/job-orders",
+  "/payroll",
+];
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -43,7 +52,7 @@ export async function updateSession(request: NextRequest) {
 
   if (user && request.nextUrl.pathname === "/login") {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = "/"; // routes by role
     return NextResponse.redirect(url);
   }
 

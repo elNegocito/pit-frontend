@@ -123,6 +123,9 @@ export default async function DashboardPage({
           <Link href="/job-orders" className="rounded-lg border bg-white px-3 py-1.5 text-sm hover:bg-zinc-50">
             Orders
           </Link>
+          <Link href="/payroll" className="rounded-lg border bg-white px-3 py-1.5 text-sm hover:bg-zinc-50">
+            Payroll
+          </Link>
           <SignOutButton />
         </div>
       </div>

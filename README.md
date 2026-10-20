@@ -36,13 +36,22 @@ Deploy: import the repo in Vercel, set the 2 env vars, Deploy. No other config n
 
 ## 4. Roles & routes
 
-- `/login` — both users. Operator lands on `/entry`, admin on `/dashboard`.
+- `/login` — all users. Operator lands on `/entry`, admin on `/dashboard`, payroll on `/payroll`.
 - `/entry` — write-only ticket form (date locked to America/Chicago day, live gross preview).
 - `/dashboard` — admin ledger: sort by clicking headers, filter by truck/ticket/customer/material/payment/COD method/date, export filtered view to CSV or PDF.
 - `/materials` — admin CRUD of materials + prices (future tickets only, history frozen).
 - `/customers` — admin rename + merge duplicates.
 - `/trucks` — admin truck registry (truck # + gross tons) used for Gross / Tare / Net on printed tickets.
 - `/job-orders` — admin project orders (one per customer), printed as "Order" on tickets.
+- `/payroll` — **driver payroll** (role `payroll`, also admin): weekly pay sheets per driver from the Excel "PAYROLL MODELOS". Search by driver / pay date / day worked / who prepared it; `/payroll/new` (pick driver → template for Flat bed / Mixer / Trucking fills in, live total); `/payroll/[id]` print, PDF, WhatsApp / email / share, copy for next week, void, change history; `/payroll/drivers` driver registry. Payroll users never see tickets; the operator never sees payroll.
+
+### Payroll rules (migration 008)
+
+- Pay = revenue × driver % + hours × $/h (+ OT hours × OT rate over 40 h, mixer) + extras − deductions. Defaults per model in `lib/payroll/models.ts` (flat bed 35% · $20, mixer 30% · $28 · OT $42, trucking 32% · $20); rates are copied onto each sheet, so changing defaults never rewrites old sheets.
+- Totals are computed and frozen by a DB trigger (`compute_pay_sheet`); `lib/payroll/compute.ts` mirrors it for the live preview.
+- Every sheet stores who created it and who last edited it; `pay_sheet_events` keeps the full history (row-level: "Load 5: revenue $250 → $260").
+- Two payroll users editing the same sheet: the second save is refused with a "reload" message (no silent overwrite). A second sheet for the same driver + pay date asks for confirmation.
+- Sheets are voided, not deleted (DELETE is admin-only).
 
 Local development (Supabase in Docker, test users, printing checklist): see [LOCAL-DEV.md](LOCAL-DEV.md).
 
