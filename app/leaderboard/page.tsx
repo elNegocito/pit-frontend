@@ -68,7 +68,7 @@ export default async function LeaderboardPage({
 
   return (
     <div className={`${condensed.variable} ${barlow.variable} flex min-h-full flex-1 flex-col bg-[#E4E2DC] font-[family-name:var(--ff-barlow)] text-[#2B2F33]`}>
-      <header className="bg-[#BFD6DE]">
+      <header className="bg-[#AFCAD6]">
         <div className="mx-auto w-full max-w-3xl px-4 pt-6 sm:pt-10">
           <p className="text-sm font-semibold text-[#4E6B7A]">ASG Operations</p>
           <h1 className="font-[family-name:var(--ff-condensed)] text-6xl leading-[0.9] font-extrabold tracking-tight sm:text-8xl">
@@ -82,7 +82,7 @@ export default async function LeaderboardPage({
                 : `Final count for ${period} ${sel.year}.`}
           </p>
         </div>
-        <div className="mt-2 h-[150px] sm:h-[230px]">
+        <div className="mt-2 h-[180px] sm:aspect-[4/1] sm:h-auto sm:max-h-[380px]">
           <PitScene />
         </div>
       </header>
