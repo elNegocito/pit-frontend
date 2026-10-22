@@ -577,31 +577,6 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
                 <dd className="tabular-nums">{money(t.loadsPay)}</dd>
               </div>
             )}
-            {(model.perYardRate !== null || yardBonus) && (
-              <div className="flex items-center justify-between gap-2">
-                <dt className="flex flex-wrap items-center gap-1">
-                  <label className="flex items-center gap-1.5">
-                    <input
-                      type="checkbox"
-                      checked={yardBonus}
-                      onChange={(e) => setYardBonus(e.target.checked)}
-                      className="h-4 w-4"
-                    />
-                    Extra per yard
-                  </label>
-                  <input
-                    value={perYardRaw}
-                    onChange={(e) => setPerYardRaw(e.target.value)}
-                    disabled={!yardBonus}
-                    inputMode="decimal"
-                    aria-label="Extra per yard ($)"
-                    className={`${cell} w-16 text-right disabled:opacity-40${red("perYard")}`}
-                  />
-                  <span className={`text-xs text-zinc-500 ${yardBonus ? "" : "opacity-40"}`}>× {num(t.totalYards)} yds</span>
-                </dt>
-                <dd className={`tabular-nums ${yardBonus ? "" : "text-zinc-400"}`}>{money(t.yardsPay)}</dd>
-              </div>
-            )}
             <div className="flex justify-between">
               <dt>Driver pay for hours{parsed.ot !== null && ` (${num(t.regularHours)} h)`}</dt>
               <dd className="tabular-nums">{money(t.regularPay)}</dd>
@@ -616,6 +591,41 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
             )}
           </dl>
           <div className="mt-2 space-y-1">
+            {/* Optional mixer bonus, first of the extras and laid out like them:
+                name (with rate x yards) | on/off | amount. */}
+            {(model.perYardRate !== null || yardBonus) && (
+              <div className="flex items-center gap-2">
+                <div className={`${cell} flex min-w-0 flex-1 items-center gap-1 text-xs uppercase${red("perYard")}`}>
+                  <span className={yardBonus ? "" : "text-zinc-400"}>Extra per yard</span>
+                  <span className="ml-auto text-zinc-400 normal-case">$</span>
+                  <input
+                    value={perYardRaw}
+                    onChange={(e) => setPerYardRaw(e.target.value)}
+                    disabled={!yardBonus}
+                    inputMode="decimal"
+                    aria-label="Extra per yard ($)"
+                    className="w-10 bg-transparent! text-right focus:outline-none disabled:opacity-40"
+                  />
+                  <span className="text-zinc-400 normal-case">× {num(t.totalYards)} yds</span>
+                </div>
+                <label className="flex items-center gap-1 text-xs text-zinc-500" title="Apply extra per yard">
+                  <input
+                    type="checkbox"
+                    checked={yardBonus}
+                    onChange={(e) => setYardBonus(e.target.checked)}
+                    aria-label="Extra per yard"
+                    className="h-3.5 w-3.5"
+                  />
+                  <span className="invisible">−</span>
+                </label>
+                <output className={`${cell} w-24 text-right tabular-nums ${yardBonus ? "" : "text-zinc-400"}`}>
+                  {t.yardsPay.toFixed(2)}
+                </output>
+                <span aria-hidden className="invisible px-1">
+                  ✕
+                </span>
+              </div>
+            )}
             {adjustments.map((a) => (
               <div key={a.key} className="flex items-center gap-2">
                 <input
