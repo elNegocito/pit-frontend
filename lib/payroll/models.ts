@@ -31,7 +31,10 @@ export interface PayModelConfig {
    * its loads have no revenue / company and pay per yard instead.
    */
   byRevenue: boolean;
-  /** $ per yard hauled ("EXTRA PER YARD"); null = no per-yard pay. */
+  /**
+   * Default $ per yard for the optional "EXTRA PER YARD" bonus (a checkbox on
+   * the sheet, off by default); null = the model has no per-yard bonus.
+   */
   perYardRate: number | null;
   /** Header of the free-text last loads column (zone / tons); null = numeric yards. */
   extraLabel: string | null;

@@ -96,8 +96,11 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
     init ? (init.ot_rate === null ? "" : String(init.ot_rate)) : m0.otRate === null ? "" : String(m0.otRate),
   );
   const [otThresholdRaw, setOtThresholdRaw] = useState(String(init?.ot_threshold ?? m0.otThreshold));
+  // Extra per yard is an optional bonus: off by default, on when the sheet
+  // being edited / copied has it. The rate stays filled in either way.
+  const [yardBonus, setYardBonus] = useState(init ? init.per_yard_rate !== null : false);
   const [perYardRaw, setPerYardRaw] = useState(() => {
-    const v = init ? init.per_yard_rate : m0.perYardRate;
+    const v = init?.per_yard_rate ?? m0.perYardRate;
     return v === null ? "" : String(v);
   });
 
@@ -142,6 +145,7 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
     setOtRaw(m.otRate === null ? "" : String(m.otRate));
     setOtThresholdRaw(String(m.otThreshold));
     setPerYardRaw(m.perYardRate === null ? "" : String(m.perYardRate));
+    setYardBonus(false);
     setHours((h) => templateHours(next, h));
     setAdjustments((a) => templateAdjustments(next, a));
   }
@@ -191,7 +195,7 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
     const rate = n(rateRaw, "rate");
     const ot = otRaw.trim() === "" ? null : n(otRaw, "ot");
     const otThreshold = n(otThresholdRaw, "otThreshold");
-    const perYard = perYardRaw.trim() === "" ? null : n(perYardRaw, "perYard");
+    const perYard = !yardBonus || perYardRaw.trim() === "" ? null : n(perYardRaw, "perYard");
     const filled = loadLines.filter(isFilledLoad);
     const totals = computeTotals({
       revenuePct: pct,
@@ -204,7 +208,7 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
       adjustments: adjLines,
     });
     return { bad, loadLines, hourLines, adjLines, pct, rate, ot, otThreshold, perYard, totals };
-  }, [model, loads, hours, adjustments, pctRaw, rateRaw, otRaw, otThresholdRaw, perYardRaw]);
+  }, [model, loads, hours, adjustments, pctRaw, rateRaw, otRaw, otThresholdRaw, perYardRaw, yardBonus]);
 
   const t = parsed.totals;
 
@@ -336,7 +340,7 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
           <p className="text-xs text-zinc-500">
             Defaults for {model.label}: {model.byRevenue ? `${model.revenuePct}% · ` : ""}${model.hourlyRate}/h
             {model.otRate !== null && ` · OT $${model.otRate}/h after ${model.otThreshold} h`}
-            {model.perYardRate !== null && ` · $${model.perYardRate} per yard`}
+            {model.perYardRate !== null && ` · optional $${model.perYardRate} per yard`}
           </p>
         </div>
       </section>
@@ -573,20 +577,29 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
                 <dd className="tabular-nums">{money(t.loadsPay)}</dd>
               </div>
             )}
-            {(model.perYardRate !== null || parsed.perYard !== null) && (
+            {(model.perYardRate !== null || yardBonus) && (
               <div className="flex items-center justify-between gap-2">
                 <dt className="flex flex-wrap items-center gap-1">
-                  Extra per yard
+                  <label className="flex items-center gap-1.5">
+                    <input
+                      type="checkbox"
+                      checked={yardBonus}
+                      onChange={(e) => setYardBonus(e.target.checked)}
+                      className="h-4 w-4"
+                    />
+                    Extra per yard
+                  </label>
                   <input
                     value={perYardRaw}
                     onChange={(e) => setPerYardRaw(e.target.value)}
+                    disabled={!yardBonus}
                     inputMode="decimal"
                     aria-label="Extra per yard ($)"
-                    className={`${cell} w-16 text-right${red("perYard")}`}
+                    className={`${cell} w-16 text-right disabled:opacity-40${red("perYard")}`}
                   />
-                  <span className="text-xs text-zinc-500">× {num(t.totalYards)} yds</span>
+                  <span className={`text-xs text-zinc-500 ${yardBonus ? "" : "opacity-40"}`}>× {num(t.totalYards)} yds</span>
                 </dt>
-                <dd className="tabular-nums">{money(t.yardsPay)}</dd>
+                <dd className={`tabular-nums ${yardBonus ? "" : "text-zinc-400"}`}>{money(t.yardsPay)}</dd>
               </div>
             )}
             <div className="flex justify-between">
