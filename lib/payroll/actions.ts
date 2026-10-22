@@ -27,12 +27,14 @@ function clean(input: SheetInput) {
   if (!finite(input.hourlyRate) || input.hourlyRate < 0) return "Hourly rate must be 0 or more.";
   if (input.otRate !== null && (!finite(input.otRate) || input.otRate < 0)) return "Overtime rate must be 0 or more.";
   if (!finite(input.otThreshold) || input.otThreshold < 0) return "Overtime threshold must be 0 or more.";
+  if (input.perYardRate !== null && (!finite(input.perYardRate) || input.perYardRate < 0)) return "Extra per yard must be 0 or more.";
 
   const loads = input.loads.filter(isFilledLoad);
   if (loads.length > MAX_LOADS) return `At most ${MAX_LOADS} loads per sheet.`;
   for (const [i, l] of loads.entries()) {
     if (l.date && !ISO_DATE.test(l.date)) return `Load ${i + 1}: invalid date.`;
     if (!finite(l.revenue) || l.revenue < 0) return `Load ${i + 1}: revenue must be 0 or more.`;
+    if (!finite(l.yards) || l.yards < 0) return `Load ${i + 1}: yards must be 0 or more.`;
   }
   const hours = input.hours.filter((h) => DAYS.includes(h.day));
   for (const h of hours) {
@@ -52,13 +54,16 @@ function clean(input: SheetInput) {
     hourly_rate: input.hourlyRate,
     ot_rate: input.otRate,
     ot_threshold: input.otThreshold,
+    per_yard_rate: input.perYardRate,
     loads: loads.map((l) => ({
       date: l.date,
+      truck: text(l.truck, 40),
       // 4 decimals like the Excel cell (formula revenue); totals round to cents.
       revenue: Math.round(l.revenue * 10000) / 10000,
       load_number: text(l.load_number, 40),
       company: text(l.company, 120),
       extra: text(l.extra, 40),
+      yards: Math.round(l.yards * 100) / 100,
     })),
     hours: hours.map((h) => ({ day: h.day, hours: h.hours, note: text(h.note, 120) })),
     adjustments: adjustments.map((a) => ({

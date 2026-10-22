@@ -17,7 +17,7 @@ export default async function DriversPage() {
     <main className="min-h-full flex-1 bg-zinc-100 px-4 py-6">
       <PayrollHeader
         title="Drivers"
-        subtitle="What each driver drives picks their pay template (Flat bed / Mixer / Trucking). Phone and email are used by Send."
+        subtitle="What each driver drives picks their pay template (Flat bed / Mixer / Aggregate). Phone and email are used by Send."
         role={user.role}
       />
       <div className="mx-auto w-full max-w-6xl space-y-4">

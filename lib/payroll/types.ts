@@ -25,12 +25,15 @@ export interface PaySheet {
   hourly_rate: number;
   ot_rate: number | null;
   ot_threshold: number;
+  per_yard_rate: number | null;
   loads: LoadLine[];
   hours: HoursLine[];
   adjustments: Adjustment[];
   loads_count: number;
   total_revenue: number;
   loads_pay: number;
+  total_yards: number;
+  yards_pay: number;
   total_hours: number;
   regular_pay: number;
   ot_pay: number;
@@ -55,7 +58,7 @@ export interface PaySheetEvent {
 }
 
 export const SHEET_SELECT =
-  "id, sheet_number, driver_id, driver_name, truck_number, pay_model, pay_date, notes, revenue_pct, hourly_rate, ot_rate, ot_threshold, loads, hours, adjustments, loads_count, total_revenue, loads_pay, total_hours, regular_pay, ot_pay, adjustments_total, total_pay, period_start, period_end, status, created_by_name, created_at, updated_by_name, updated_at, edit_count";
+  "id, sheet_number, driver_id, driver_name, truck_number, pay_model, pay_date, notes, revenue_pct, hourly_rate, ot_rate, ot_threshold, per_yard_rate, loads, hours, adjustments, loads_count, total_revenue, loads_pay, total_yards, yards_pay, total_hours, regular_pay, ot_pay, adjustments_total, total_pay, period_start, period_end, status, created_by_name, created_at, updated_by_name, updated_at, edit_count";
 
 /** numeric columns arrive as strings from PostgREST: normalize once. */
 export function toSheet(r: Record<string, unknown>): PaySheet {
@@ -66,8 +69,21 @@ export function toSheet(r: Record<string, unknown>): PaySheet {
     hourly_rate: n(r.hourly_rate),
     ot_rate: r.ot_rate === null ? null : n(r.ot_rate),
     ot_threshold: n(r.ot_threshold),
+    per_yard_rate: r.per_yard_rate === null || r.per_yard_rate === undefined ? null : n(r.per_yard_rate),
+    // Loads saved before migration 009 have no truck / yards.
+    loads: ((r.loads ?? []) as Partial<LoadLine>[]).map((l) => ({
+      date: l.date ?? "",
+      truck: l.truck ?? "",
+      revenue: Number(l.revenue ?? 0),
+      load_number: l.load_number ?? "",
+      company: l.company ?? "",
+      extra: l.extra ?? "",
+      yards: Number(l.yards ?? 0),
+    })),
     total_revenue: n(r.total_revenue),
     loads_pay: n(r.loads_pay),
+    total_yards: n(r.total_yards),
+    yards_pay: n(r.yards_pay),
     total_hours: n(r.total_hours),
     regular_pay: n(r.regular_pay),
     ot_pay: n(r.ot_pay),

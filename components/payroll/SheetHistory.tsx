@@ -11,6 +11,8 @@ const FIELD_LABELS: Record<string, string> = {
   hourly_rate: "$ / hour",
   ot_rate: "OT $ / hour",
   ot_threshold: "OT after (hours)",
+  per_yard_rate: "Extra per yard",
+  total_yards: "Total yards",
   total_revenue: "Total revenue",
   total_hours: "Total hours",
   adjustments_total: "Extras / deductions",
@@ -18,7 +20,16 @@ const FIELD_LABELS: Record<string, string> = {
 };
 
 type Obj = Record<string, unknown>;
-const MONEY_FIELDS = new Set(["hourly_rate", "ot_rate", "total_revenue", "adjustments_total", "total_pay", "revenue", "amount"]);
+const MONEY_FIELDS = new Set([
+  "hourly_rate",
+  "ot_rate",
+  "per_yard_rate",
+  "total_revenue",
+  "adjustments_total",
+  "total_pay",
+  "revenue",
+  "amount",
+]);
 
 const show = (v: unknown) => (v === null || v === undefined || v === "" ? "—" : String(v));
 const showField = (field: string, v: unknown) =>

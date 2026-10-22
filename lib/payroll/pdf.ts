@@ -2,7 +2,8 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { formatTicketDate } from "@/lib/timezone";
 import { DAY_LABELS, PAY_MODELS, PAYROLL_HEADER } from "./models";
-import { computeTotals, money, num } from "./compute";
+import { money, num } from "./compute";
+import { loadColumns, summaryLines } from "./layout";
 import type { PaySheet } from "./types";
 
 const d = (iso: string | null | undefined) => (iso ? formatTicketDate(iso) : "");
@@ -19,24 +20,18 @@ export function sheetSummary(s: PaySheet): string {
     `ASG Driver Pay Sheet #${s.sheet_number}`,
     `Driver: ${s.driver_name}${s.truck_number ? ` - Truck #${s.truck_number}` : ""}`,
     `Pay date: ${d(s.pay_date)}${period}`,
-    `Loads: ${s.loads_count} - Pay for loads: ${money(s.loads_pay)}`,
+    PAY_MODELS[s.pay_model].byRevenue
+      ? `Loads: ${s.loads_count} - Pay for loads: ${money(s.loads_pay)}`
+      : `Loads: ${s.loads_count} - Yards: ${num(s.total_yards)} - Extra per yard: ${money(s.yards_pay)}`,
     `Hours: ${num(s.total_hours)} - Pay for hours: ${money(s.regular_pay + s.ot_pay)}`,
     `TOTAL PAY: ${money(s.total_pay)}`,
   ].join("\n");
 }
 
-/** Letter-size PDF laid out like the client's Excel pay sheet. */
+/** Letter-size PDF laid out like the client's Excel pay sheet (totals as stored by the DB). */
 export function buildSheetPdf(s: PaySheet): jsPDF {
   const model = PAY_MODELS[s.pay_model];
-  const t = computeTotals({
-    revenuePct: s.revenue_pct,
-    hourlyRate: s.hourly_rate,
-    otRate: s.ot_rate,
-    otThreshold: s.ot_threshold,
-    loads: s.loads,
-    hours: s.hours,
-    adjustments: s.adjustments,
-  });
+  const cols = loadColumns(s);
   const doc = new jsPDF({ unit: "pt", format: "letter" });
   const W = doc.internal.pageSize.getWidth();
   const M = 40;
@@ -58,29 +53,22 @@ export function buildSheetPdf(s: PaySheet): jsPDF {
     styles: { fontSize: 10, cellPadding: 2 },
     columnStyles: { 0: { fontStyle: "bold", cellWidth: 70 }, 2: { fontStyle: "bold", cellWidth: 60 } },
     body: [
-      ["DRIVER:", s.driver_name, "TRUCK #:", s.truck_number ?? ""],
-      ["PAY DATE:", d(s.pay_date), "NOTES:", s.notes ?? ""],
+      ["DRIVER:", s.driver_name, "NOTES:", s.notes ?? ""],
+      ["PAY DATE:", d(s.pay_date), "", ""],
     ],
     margin: { left: M, right: M },
   });
 
   autoTable(doc, {
     startY: (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8,
-    head: [["LOAD #", "DATE", "REVENUE", `DRIVER PAY @ ${num(s.revenue_pct)}%`, "TICKET #", "COMPANY", model.extraLabel.toUpperCase()]],
-    body: s.loads.map((l, i) => [
-      `Load ${i + 1}`,
-      d(l.date),
-      money(l.revenue),
-      money((l.revenue * s.revenue_pct) / 100),
-      l.load_number,
-      l.company,
-      l.extra,
-    ]),
-    foot: [["TOTALS", "", money(t.totalRevenue), money(t.loadsPay), "", "", ""]],
+    head: [cols.map((c) => c.header.toUpperCase())],
+    body: s.loads.map((l, i) => cols.map((c) => c.cell(l, i))),
+    // columnStyles do not reach the footer: align each total like its column.
+    foot: [cols.map((c) => ({ content: c.total, styles: { halign: c.right ? ("right" as const) : ("left" as const) } }))],
     styles: { fontSize: 8, cellPadding: 3 },
     headStyles: { fillColor: [39, 39, 42] },
     footStyles: { fillColor: [244, 244, 245], textColor: 20 },
-    columnStyles: { 2: { halign: "right" }, 3: { halign: "right" } },
+    columnStyles: Object.fromEntries(cols.flatMap((c, i) => (c.right ? [[i, { halign: "right" as const }]] : []))),
     margin: { left: M, right: M },
   });
 
@@ -91,7 +79,7 @@ export function buildSheetPdf(s: PaySheet): jsPDF {
     startY: afterLoads,
     head: [[`DRIVER HOURS @ ${money(s.hourly_rate)}/HR`, "HOURS", ""]],
     body: s.hours.map((h) => [DAY_LABELS[h.day].toUpperCase(), num(h.hours), h.note]),
-    foot: [["TOTAL HOURS", num(t.totalHours), ""]],
+    foot: [["TOTAL HOURS", num(s.total_hours), ""]],
     styles: { fontSize: 8, cellPadding: 3 },
     headStyles: { fillColor: [39, 39, 42] },
     footStyles: { fillColor: [244, 244, 245], textColor: 20 },
@@ -100,23 +88,10 @@ export function buildSheetPdf(s: PaySheet): jsPDF {
   });
   const hoursEnd = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
 
-  const summary: [string, string][] = [
-    ["DRIVER PAY FOR LOADS", money(t.loadsPay)],
-    [
-      s.ot_rate === null ? "DRIVER PAY FOR HOURS" : `DRIVER PAY FOR HOURS (${num(t.regularHours)} h)`,
-      money(t.regularPay),
-    ],
-  ];
-  if (s.ot_rate !== null) {
-    summary.push([`DRIVER PAY FOR OT HOURS (${num(t.otHours)} h @ ${money(s.ot_rate)})`, money(t.otPay)]);
-  }
-  for (const a of s.adjustments) {
-    summary.push([a.label, a.deduction ? `-${money(a.amount)}` : money(a.amount)]);
-  }
   autoTable(doc, {
     startY: afterLoads,
-    body: summary,
-    foot: [["TOTAL PAY", money(t.totalPay)]],
+    body: summaryLines(s).map((l) => [l.label, l.deduction ? `-${money(l.amount)}` : money(l.amount)]),
+    foot: [["TOTAL PAY", money(s.total_pay)]],
     styles: { fontSize: 8, cellPadding: 3 },
     footStyles: { fillColor: [39, 39, 42], fontSize: 10 },
     columnStyles: { 1: { halign: "right", cellWidth: 80 } },

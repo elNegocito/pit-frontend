@@ -43,11 +43,12 @@ Deploy: import the repo in Vercel, set the 2 env vars, Deploy. No other config n
 - `/customers` — admin rename + merge duplicates.
 - `/trucks` — admin truck registry (truck # + gross tons) used for Gross / Tare / Net on printed tickets.
 - `/job-orders` — admin project orders (one per customer), printed as "Order" on tickets.
-- `/payroll` — **driver payroll** (role `payroll`, also admin): weekly pay sheets per driver from the Excel "PAYROLL MODELOS". Search by driver / pay date / day worked / who prepared it; `/payroll/new` (pick driver → template for Flat bed / Mixer / Trucking fills in, live total); `/payroll/[id]` print, PDF, WhatsApp / email / share, copy for next week, void, change history; `/payroll/drivers` driver registry. Payroll users never see tickets; the operator never sees payroll.
+- `/payroll` — **driver payroll** (role `payroll`, also admin): weekly pay sheets per driver from the Excel "PAYROLL MODELOS". Search by driver / pay date / day worked / who prepared it; `/payroll/new` (pick driver → template for Flat bed / Mixer / Aggregate fills in, live total; truck # per load with "Apply to all loads"); `/payroll/[id]` print, PDF, WhatsApp / email / share, copy for next week, void, change history; `/payroll/drivers` driver registry. Payroll users never see tickets; the operator never sees payroll.
 
 ### Payroll rules (migration 008)
 
-- Pay = revenue × driver % + hours × $/h (+ OT hours × OT rate over 40 h, mixer) + extras − deductions. Defaults per model in `lib/payroll/models.ts` (flat bed 35% · $20, mixer 30% · $28 · OT $42, trucking 32% · $20); rates are copied onto each sheet, so changing defaults never rewrites old sheets.
+- Pay = revenue × driver % (flat bed, aggregate) + total yards × extra per yard (mixer) + hours × $/h (+ OT hours × OT rate over 40 h, mixer) + extras − deductions. Defaults per model in `lib/payroll/models.ts` (flat bed 35% · $20, mixer $0.25/yard · $28 · OT $42, aggregate 32% · $20; "Aggregate" is stored as `trucking`); rates are copied onto each sheet, so changing defaults never rewrites old sheets.
+- Each load has its own truck # (a driver may use another truck when theirs breaks); mixer loads are date / truck / ticket / yards, with the yards totalled (migration 009).
 - Totals are computed and frozen by a DB trigger (`compute_pay_sheet`); `lib/payroll/compute.ts` mirrors it for the live preview.
 - Every sheet stores who created it and who last edited it; `pay_sheet_events` keeps the full history (row-level: "Load 5: revenue $250 → $260").
 - Two payroll users editing the same sheet: the second save is refused with a "reload" message (no silent overwrite). A second sheet for the same driver + pay date asks for confirmation.

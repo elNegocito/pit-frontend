@@ -18,9 +18,10 @@ import { DAY_LABELS, PAY_MODEL_KEYS, PAY_MODELS, type Day, type PayModel } from 
 import type { Driver, PaySheet } from "@/lib/payroll/types";
 
 // Form rows keep the raw text the user typed (revenue accepts "25.93*9.5").
-interface LoadRow extends Omit<LoadLine, "revenue"> {
+interface LoadRow extends Omit<LoadLine, "revenue" | "yards"> {
   key: number;
   revenueRaw: string;
+  yardsRaw: string;
 }
 interface AdjRow {
   key: number;
@@ -36,13 +37,15 @@ interface HoursRow {
 
 const EMPTY_LOAD_ROWS = 8;
 let nextKey = 1;
-const blankLoad = (date = ""): LoadRow => ({
+const blankLoad = (date = "", truck = ""): LoadRow => ({
   key: nextKey++,
   date,
+  truck,
   revenueRaw: "",
   load_number: "",
   company: "",
   extra: "",
+  yardsRaw: "",
 });
 
 function templateHours(model: PayModel, keep: HoursRow[] = []): HoursRow[] {
@@ -93,18 +96,24 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
     init ? (init.ot_rate === null ? "" : String(init.ot_rate)) : m0.otRate === null ? "" : String(m0.otRate),
   );
   const [otThresholdRaw, setOtThresholdRaw] = useState(String(init?.ot_threshold ?? m0.otThreshold));
+  const [perYardRaw, setPerYardRaw] = useState(() => {
+    const v = init ? init.per_yard_rate : m0.perYardRate;
+    return v === null ? "" : String(v);
+  });
 
   const [loads, setLoads] = useState<LoadRow[]>(() => {
     const saved = (sheet?.loads ?? []).map((l) => ({
       key: nextKey++,
       date: l.date,
+      truck: l.truck,
       revenueRaw: l.revenue ? String(l.revenue) : "",
       load_number: l.load_number,
       company: l.company,
       extra: l.extra,
+      yardsRaw: l.yards ? String(l.yards) : "",
     }));
     const fill = Math.max(sheet ? 2 : EMPTY_LOAD_ROWS, EMPTY_LOAD_ROWS - saved.length);
-    return [...saved, ...Array.from({ length: fill }, () => blankLoad())];
+    return [...saved, ...Array.from({ length: fill }, () => blankLoad("", truck))];
   });
   const [hours, setHours] = useState<HoursRow[]>(() =>
     init
@@ -132,6 +141,7 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
     setRateRaw(String(m.hourlyRate));
     setOtRaw(m.otRate === null ? "" : String(m.otRate));
     setOtThresholdRaw(String(m.otThreshold));
+    setPerYardRaw(m.perYardRate === null ? "" : String(m.perYardRate));
     setHours((h) => templateHours(next, h));
     setAdjustments((a) => templateAdjustments(next, a));
   }
@@ -140,8 +150,16 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
     setDriverId(id);
     const d = drivers.find((x) => x.id === id);
     if (!d) return;
-    setTruck(d.truck_number ?? "");
+    const next = d.truck_number ?? "";
+    // Loads still on the previous driver's truck (or none) move to the new one.
+    setLoads((rows) => rows.map((r) => (!r.truck || r.truck === truck ? { ...r, truck: next } : r)));
+    setTruck(next);
     if (d.pay_model !== payModel) applyModel(d.pay_model);
+  }
+
+  /** Same truck on every load; single loads can still be changed afterwards. */
+  function applyTruckToAll() {
+    setLoads((rows) => rows.map((r) => ({ ...r, truck: truck.trim() })));
   }
 
   // ---------------------------------------------------------------- parsing
@@ -152,12 +170,16 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
       if (v === null) bad.add(key);
       return v ?? 0;
     };
+    // Only the columns this model shows are sent (a mixer has no revenue /
+    // company, the others no yards), so hidden leftovers never count.
     const loadLines: LoadLine[] = loads.map((l) => ({
       date: l.date,
-      revenue: n(l.revenueRaw, `load-${l.key}`),
+      truck: l.truck,
+      revenue: model.byRevenue ? n(l.revenueRaw, `load-${l.key}`) : 0,
       load_number: l.load_number,
-      company: l.company,
-      extra: l.extra,
+      company: model.byRevenue ? l.company : "",
+      extra: model.extraLabel ? l.extra : "",
+      yards: model.extraLabel ? 0 : n(l.yardsRaw, `yards-${l.key}`),
     }));
     const hourLines: HoursLine[] = hours.map((h) => ({ day: h.day, hours: n(h.hoursRaw, `hours-${h.day}`), note: h.note }));
     const adjLines: Adjustment[] = adjustments.map((a) => ({
@@ -169,18 +191,20 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
     const rate = n(rateRaw, "rate");
     const ot = otRaw.trim() === "" ? null : n(otRaw, "ot");
     const otThreshold = n(otThresholdRaw, "otThreshold");
+    const perYard = perYardRaw.trim() === "" ? null : n(perYardRaw, "perYard");
     const filled = loadLines.filter(isFilledLoad);
     const totals = computeTotals({
       revenuePct: pct,
       hourlyRate: rate,
       otRate: ot,
       otThreshold,
+      perYardRate: perYard,
       loads: filled,
       hours: hourLines,
       adjustments: adjLines,
     });
-    return { bad, loadLines, hourLines, adjLines, pct, rate, ot, otThreshold, totals };
-  }, [loads, hours, adjustments, pctRaw, rateRaw, otRaw, otThresholdRaw]);
+    return { bad, loadLines, hourLines, adjLines, pct, rate, ot, otThreshold, perYard, totals };
+  }, [model, loads, hours, adjustments, pctRaw, rateRaw, otRaw, otThresholdRaw, perYardRaw]);
 
   const t = parsed.totals;
 
@@ -202,6 +226,7 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
       hourlyRate: parsed.rate,
       otRate: parsed.ot,
       otThreshold: parsed.otThreshold,
+      perYardRate: parsed.perYard,
       loads: parsed.loadLines,
       hours: parsed.hourLines,
       adjustments: parsed.adjLines,
@@ -223,7 +248,8 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
     setLoads((rows) => rows.map((r) => (r.key === key ? { ...r, ...patch } : r)));
   const updateAdj = (key: number, patch: Partial<AdjRow>) =>
     setAdjustments((rows) => rows.map((r) => (r.key === key ? { ...r, ...patch } : r)));
-  const red = (key: string) => (parsed.bad.has(key) ? " border-red-500 bg-red-50" : "");
+  // "!" beats the global input background in globals.css.
+  const red = (key: string) => (parsed.bad.has(key) ? " border-red-500! bg-red-50!" : "");
 
   const missingDays = (Object.keys(DAY_LABELS) as Day[]).filter((d) => !hours.some((h) => h.day === d));
 
@@ -235,9 +261,9 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
       }}
       className="space-y-4"
     >
-      {/* Header: driver, truck, pay date */}
+      {/* Header: driver, pay model, pay date (truck # goes on each load) */}
       <section className="rounded-2xl bg-white p-4 shadow">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-3">
           <label className="text-sm font-medium">
             Driver
             <select
@@ -267,10 +293,6 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
             </select>
           </label>
           <label className="text-sm font-medium">
-            Truck #
-            <input value={truck} onChange={(e) => setTruck(e.target.value)} maxLength={40} className={`mt-1 ${input}`} />
-          </label>
-          <label className="text-sm font-medium">
             Pay date
             <input
               type="date"
@@ -286,10 +308,12 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
           <input value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={1000} className={`mt-1 ${input}`} />
         </label>
         <div className="mt-3 flex flex-wrap items-end gap-3 text-sm">
-          <label className="font-medium">
-            Driver pay %
-            <input value={pctRaw} onChange={(e) => setPctRaw(e.target.value)} inputMode="decimal" className={`mt-1 w-20 ${cell}${red("pct")}`} />
-          </label>
+          {model.byRevenue && (
+            <label className="font-medium">
+              Driver pay %
+              <input value={pctRaw} onChange={(e) => setPctRaw(e.target.value)} inputMode="decimal" className={`mt-1 w-20 ${cell}${red("pct")}`} />
+            </label>
+          )}
           <label className="font-medium">
             $ / hour
             <input value={rateRaw} onChange={(e) => setRateRaw(e.target.value)} inputMode="decimal" className={`mt-1 w-20 ${cell}${red("rate")}`} />
@@ -310,29 +334,58 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
             </label>
           )}
           <p className="text-xs text-zinc-500">
-            Defaults for {model.label}: {model.revenuePct}% · ${model.hourlyRate}/h
+            Defaults for {model.label}: {model.byRevenue ? `${model.revenuePct}% · ` : ""}${model.hourlyRate}/h
             {model.otRate !== null && ` · OT $${model.otRate}/h after ${model.otThreshold} h`}
+            {model.perYardRate !== null && ` · $${model.perYardRate} per yard`}
           </p>
         </div>
       </section>
 
       {/* Loads */}
       <section className="rounded-2xl bg-white p-4 shadow">
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-semibold">Loads</h2>
-          <p className="text-xs text-zinc-500">Revenue accepts a formula like 25.93*9.5 · empty rows are ignored</p>
+        <div className="mb-2 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-semibold">Loads</h2>
+            <p className="text-xs text-zinc-500">
+              {model.byRevenue ? "Revenue accepts a formula like 25.93*9.5 · " : ""}empty rows are ignored
+            </p>
+          </div>
+          <div className="flex items-end gap-2 text-sm">
+            <label className="font-medium">
+              Truck #
+              <input
+                value={truck}
+                onChange={(e) => setTruck(e.target.value)}
+                maxLength={40}
+                className={`mt-1 block w-24 ${cell}`}
+              />
+            </label>
+            <button
+              type="button"
+              onClick={applyTruckToAll}
+              className="rounded-lg border px-3 py-1.5 text-sm hover:bg-zinc-100"
+              title="Put this truck # on every load (each one can still be changed)"
+            >
+              Apply to all loads
+            </button>
+          </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] text-sm">
+          <table className={`w-full text-sm ${model.byRevenue ? "min-w-[860px]" : "min-w-[480px]"}`}>
             <thead className="text-left text-xs text-zinc-500 uppercase">
               <tr>
                 <th className="py-1 pr-2">#</th>
                 <th className="py-1 pr-2">Date</th>
-                <th className="py-1 pr-2">Revenue</th>
-                <th className="py-1 pr-2 text-right">Pay @ {num(parsed.pct)}%</th>
+                <th className="py-1 pr-2">Truck #</th>
+                {model.byRevenue && (
+                  <>
+                    <th className="py-1 pr-2">Revenue</th>
+                    <th className="py-1 pr-2 text-right">Pay @ {num(parsed.pct)}%</th>
+                  </>
+                )}
                 <th className="py-1 pr-2">Ticket #</th>
-                <th className="py-1 pr-2">Company</th>
-                <th className="py-1 pr-2">{model.extraLabel}</th>
+                {model.byRevenue && <th className="py-1 pr-2">Company</th>}
+                <th className="py-1 pr-2">{model.extraLabel ?? "Yards"}</th>
                 <th />
               </tr>
             </thead>
@@ -348,27 +401,53 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
                     </td>
                     <td className="py-0.5 pr-2">
                       <input
-                        value={l.revenueRaw}
-                        onChange={(e) => updateLoad(l.key, { revenueRaw: e.target.value })}
-                        inputMode="decimal"
-                        placeholder="0.00"
-                        className={`${cell} w-28${red(`load-${l.key}`)}`}
+                        value={l.truck}
+                        onChange={(e) => updateLoad(l.key, { truck: e.target.value })}
+                        maxLength={40}
+                        aria-label={`Truck # load ${i + 1}`}
+                        className={`${cell} w-20${l.truck && truck && l.truck !== truck ? " border-amber-400! bg-amber-50!" : ""}`}
                       />
-                      {isExpr && !parsed.bad.has(`load-${l.key}`) && (
-                        <span className="ml-1 text-xs text-zinc-500">= {money(rev)}</span>
-                      )}
                     </td>
-                    <td className="py-0.5 pr-2 text-right tabular-nums text-zinc-600">
-                      {rev ? money((rev * parsed.pct) / 100) : ""}
-                    </td>
+                    {model.byRevenue && (
+                      <>
+                        <td className="py-0.5 pr-2">
+                          <input
+                            value={l.revenueRaw}
+                            onChange={(e) => updateLoad(l.key, { revenueRaw: e.target.value })}
+                            inputMode="decimal"
+                            placeholder="0.00"
+                            className={`${cell} w-28${red(`load-${l.key}`)}`}
+                          />
+                          {isExpr && !parsed.bad.has(`load-${l.key}`) && (
+                            <span className="ml-1 text-xs text-zinc-500">= {money(rev)}</span>
+                          )}
+                        </td>
+                        <td className="py-0.5 pr-2 text-right tabular-nums text-zinc-600">
+                          {rev ? money((rev * parsed.pct) / 100) : ""}
+                        </td>
+                      </>
+                    )}
                     <td className="py-0.5 pr-2">
                       <input value={l.load_number} onChange={(e) => updateLoad(l.key, { load_number: e.target.value })} maxLength={40} className={`${cell} w-28`} />
                     </td>
+                    {model.byRevenue && (
+                      <td className="py-0.5 pr-2">
+                        <input value={l.company} onChange={(e) => updateLoad(l.key, { company: e.target.value })} maxLength={120} className={`${cell} w-full min-w-40`} />
+                      </td>
+                    )}
                     <td className="py-0.5 pr-2">
-                      <input value={l.company} onChange={(e) => updateLoad(l.key, { company: e.target.value })} maxLength={120} className={`${cell} w-full min-w-40`} />
-                    </td>
-                    <td className="py-0.5 pr-2">
-                      <input value={l.extra} onChange={(e) => updateLoad(l.key, { extra: e.target.value })} maxLength={40} className={`${cell} w-20`} />
+                      {model.extraLabel ? (
+                        <input value={l.extra} onChange={(e) => updateLoad(l.key, { extra: e.target.value })} maxLength={40} className={`${cell} w-20`} />
+                      ) : (
+                        <input
+                          value={l.yardsRaw}
+                          onChange={(e) => updateLoad(l.key, { yardsRaw: e.target.value })}
+                          inputMode="decimal"
+                          placeholder="0"
+                          aria-label={`Yards load ${i + 1}`}
+                          className={`${cell} w-20 text-right${red(`yards-${l.key}`)}`}
+                        />
+                      )}
                     </td>
                     <td className="py-0.5">
                       <button
@@ -386,19 +465,36 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
             </tbody>
             <tfoot className="border-t font-semibold">
               <tr>
-                <td className="py-1.5 pr-2 text-xs uppercase" colSpan={2}>
+                <td className="py-1.5 pr-2 text-xs uppercase" colSpan={3}>
                   Totals ({t.loadsCount} loads)
                 </td>
-                <td className="py-1.5 pr-2 tabular-nums">{money(t.totalRevenue)}</td>
-                <td className="py-1.5 pr-2 text-right tabular-nums">{money(t.loadsPay)}</td>
-                <td colSpan={4} />
+                {model.byRevenue ? (
+                  <>
+                    <td className="py-1.5 pr-2 tabular-nums">{money(t.totalRevenue)}</td>
+                    <td className="py-1.5 pr-2 text-right tabular-nums">{money(t.loadsPay)}</td>
+                    <td colSpan={4} />
+                  </>
+                ) : (
+                  <>
+                    <td className="py-1.5 pr-2 text-right text-xs uppercase">Total yards</td>
+                    <td className="py-1.5 pr-2">
+                      <span className="inline-block w-20 px-1.5 text-right tabular-nums">{num(t.totalYards)}</span>
+                    </td>
+                    <td />
+                  </>
+                )}
               </tr>
             </tfoot>
           </table>
         </div>
         <button
           type="button"
-          onClick={() => setLoads((rows) => [...rows, blankLoad([...rows].reverse().find((r) => r.date)?.date ?? "")])}
+          onClick={() =>
+            setLoads((rows) => {
+              const last = [...rows].reverse().find((r) => r.date || r.load_number);
+              return [...rows, blankLoad(last?.date ?? "", last?.truck || truck)];
+            })
+          }
           className="mt-2 rounded-lg border px-3 py-1.5 text-sm hover:bg-zinc-100"
         >
           + Add load
@@ -471,10 +567,28 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
         <section className="rounded-2xl bg-white p-4 shadow">
           <h2 className="mb-2 text-sm font-semibold">Pay summary</h2>
           <dl className="space-y-1 text-sm">
-            <div className="flex justify-between">
-              <dt>Driver pay for loads</dt>
-              <dd className="tabular-nums">{money(t.loadsPay)}</dd>
-            </div>
+            {model.byRevenue && (
+              <div className="flex justify-between">
+                <dt>Driver pay for loads</dt>
+                <dd className="tabular-nums">{money(t.loadsPay)}</dd>
+              </div>
+            )}
+            {(model.perYardRate !== null || parsed.perYard !== null) && (
+              <div className="flex items-center justify-between gap-2">
+                <dt className="flex flex-wrap items-center gap-1">
+                  Extra per yard
+                  <input
+                    value={perYardRaw}
+                    onChange={(e) => setPerYardRaw(e.target.value)}
+                    inputMode="decimal"
+                    aria-label="Extra per yard ($)"
+                    className={`${cell} w-16 text-right${red("perYard")}`}
+                  />
+                  <span className="text-xs text-zinc-500">× {num(t.totalYards)} yds</span>
+                </dt>
+                <dd className="tabular-nums">{money(t.yardsPay)}</dd>
+              </div>
+            )}
             <div className="flex justify-between">
               <dt>Driver pay for hours{parsed.ot !== null && ` (${num(t.regularHours)} h)`}</dt>
               <dd className="tabular-nums">{money(t.regularPay)}</dd>

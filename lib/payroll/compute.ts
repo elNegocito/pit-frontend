@@ -2,10 +2,12 @@ import type { Day, PayModel } from "./models";
 
 export interface LoadLine {
   date: string; // yyyy-MM-dd or ""
+  truck: string; // truck used for this load (may differ from the driver's)
   revenue: number;
   load_number: string;
   company: string;
-  extra: string; // zone / tons / yards
+  extra: string; // zone / tons (free text)
+  yards: number; // mixer: summed and paid per yard
 }
 
 export interface HoursLine {
@@ -31,6 +33,7 @@ export interface SheetInput {
   hourlyRate: number;
   otRate: number | null;
   otThreshold: number;
+  perYardRate: number | null;
   loads: LoadLine[];
   hours: HoursLine[];
   adjustments: Adjustment[];
@@ -40,6 +43,8 @@ export interface SheetTotals {
   loadsCount: number;
   totalRevenue: number;
   loadsPay: number;
+  totalYards: number;
+  yardsPay: number;
   totalHours: number;
   regularHours: number;
   otHours: number;
@@ -55,8 +60,12 @@ const r2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
  * Same formula as the public.compute_pay_sheet trigger (migration 008), which
  * is the source of truth: this only drives the form's live preview.
  */
-export function computeTotals(s: Pick<SheetInput, "revenuePct" | "hourlyRate" | "otRate" | "otThreshold" | "loads" | "hours" | "adjustments">): SheetTotals {
+export function computeTotals(
+  s: Pick<SheetInput, "revenuePct" | "hourlyRate" | "otRate" | "otThreshold" | "perYardRate" | "loads" | "hours" | "adjustments">,
+): SheetTotals {
   const totalRevenue = r2(s.loads.reduce((t, l) => t + (Number(l.revenue) || 0), 0));
+  const totalYards = r2(s.loads.reduce((t, l) => t + (Number(l.yards) || 0), 0));
+  const yardsPay = s.perYardRate === null ? 0 : r2(totalYards * s.perYardRate);
   const totalHours = r2(s.hours.reduce((t, h) => t + (Number(h.hours) || 0), 0));
   const loadsPay = r2((totalRevenue * s.revenuePct) / 100);
   const regularHours = s.otRate === null ? totalHours : Math.min(totalHours, s.otThreshold);
@@ -70,19 +79,26 @@ export function computeTotals(s: Pick<SheetInput, "revenuePct" | "hourlyRate" | 
     loadsCount: s.loads.length,
     totalRevenue,
     loadsPay,
+    totalYards,
+    yardsPay,
     totalHours,
     regularHours: r2(regularHours),
     otHours: r2(otHours),
     regularPay,
     otPay,
     adjustmentsTotal,
-    totalPay: r2(loadsPay + regularPay + otPay + adjustmentsTotal),
+    totalPay: r2(loadsPay + yardsPay + regularPay + otPay + adjustmentsTotal),
   };
 }
 
-/** A load row counts when it has any data (empty template rows are not saved). */
+/**
+ * A load row counts when it has any data (empty template rows are not saved).
+ * The truck alone does not count: "Apply to all loads" fills it on blank rows.
+ */
 export function isFilledLoad(l: LoadLine): boolean {
-  return Boolean(l.date || l.load_number.trim() || l.company.trim() || l.extra.trim() || Number(l.revenue));
+  return Boolean(
+    l.date || l.load_number.trim() || l.company.trim() || l.extra.trim() || Number(l.revenue) || Number(l.yards),
+  );
 }
 
 /**

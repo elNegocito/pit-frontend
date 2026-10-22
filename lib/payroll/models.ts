@@ -1,5 +1,6 @@
 // The three pay models from the client's Excel "PAYROLL MODELOS" (one tab
-// per model). They are the defaults of a new sheet: rates and extras are
+// per model), with the client's later changes (mixer paid per yard,
+// "trucking" shown as Aggregate). They are the defaults of a new sheet: rates and extras are
 // copied onto each sheet and can be adjusted there without touching older
 // sheets.
 
@@ -25,8 +26,15 @@ export interface PayModelConfig {
   /** null = no overtime (every hour at hourlyRate). */
   otRate: number | null;
   otThreshold: number;
-  /** Header of the last loads column (zone / tons / yards). */
-  extraLabel: string;
+  /**
+   * Paid by % of each load's revenue (flat bed, aggregate). Mixer is not:
+   * its loads have no revenue / company and pay per yard instead.
+   */
+  byRevenue: boolean;
+  /** $ per yard hauled ("EXTRA PER YARD"); null = no per-yard pay. */
+  perYardRate: number | null;
+  /** Header of the free-text last loads column (zone / tons); null = numeric yards. */
+  extraLabel: string | null;
   /** Empty load rows the template starts with. */
   loadRows: number;
   days: Day[];
@@ -40,6 +48,8 @@ export const PAY_MODELS: Record<PayModel, PayModelConfig> = {
     hourlyRate: 20,
     otRate: null,
     otThreshold: 40,
+    byRevenue: true,
+    perYardRate: null,
     extraLabel: "Zone",
     loadRows: 22,
     days: ["MON", "TUE", "WED", "THU", "FRI"],
@@ -54,11 +64,13 @@ export const PAY_MODELS: Record<PayModel, PayModelConfig> = {
   },
   mixer: {
     label: "Mixer",
-    revenuePct: 30,
+    revenuePct: 0,
     hourlyRate: 28,
     otRate: 42,
     otThreshold: 40,
-    extraLabel: "Yards",
+    byRevenue: false,
+    perYardRate: 0.25,
+    extraLabel: null,
     loadRows: 25,
     days: ["MON", "TUE", "WED", "THU", "FRI", "SAT"],
     adjustments: [
@@ -68,12 +80,15 @@ export const PAY_MODELS: Record<PayModel, PayModelConfig> = {
       { label: "MISC DEDUCTIONS", deduction: true },
     ],
   },
+  // Key kept as "trucking" (stored in the DB); the client calls it Aggregate.
   trucking: {
-    label: "Trucking",
+    label: "Aggregate",
     revenuePct: 32,
     hourlyRate: 20,
     otRate: null,
     otThreshold: 40,
+    byRevenue: true,
+    perYardRate: null,
     extraLabel: "Tons",
     loadRows: 25,
     days: ["MON", "TUE", "WED", "THU", "FRI", "SAT"],
