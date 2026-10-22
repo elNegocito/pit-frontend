@@ -45,6 +45,8 @@ Deploy: import the repo in Vercel, set the 2 env vars, Deploy. No other config n
 - `/job-orders` — admin project orders (one per customer), printed as "Order" on tickets.
 - `/payroll` — **driver payroll** (role `payroll`, also admin): weekly pay sheets per driver from the Excel "PAYROLL MODELOS". Search by driver / pay date / day worked / who prepared it; `/payroll/new` (pick driver → template for Flat bed / Mixer / Aggregate fills in, live total; truck # per load with "Apply to all loads"); `/payroll/[id]` print, PDF, WhatsApp / email / share, copy for next week, void, change history; `/payroll/drivers` driver registry. Payroll users never see tickets; the operator never sees payroll.
 
+- `/leaderboard` — **public, no login** (link for drivers): aggregate drivers ranked by loads hauled (then tons), monthly board that starts over on the 1st + yearly totals with loads per month. Data from `public_driver_production()` (migration 010), which exposes only first name + last initial, loads and tons; pay sheets stay private. Not indexed by search engines.
+
 ### Payroll rules (migration 008)
 
 - Pay = revenue × driver % (flat bed, aggregate) + total yards × extra per yard (mixer) + hours × $/h (+ OT hours × OT rate over 40 h, mixer) + extras − deductions. Defaults per model in `lib/payroll/models.ts` (flat bed 35% · $20, mixer $0.25/yard · $28 · OT $42, aggregate 32% · $20; "Aggregate" is stored as `trucking`); rates are copied onto each sheet, so changing defaults never rewrites old sheets.
