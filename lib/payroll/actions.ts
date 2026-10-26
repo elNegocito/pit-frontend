@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requirePayroll } from "@/lib/auth";
-import { DAYS, isPayModel } from "./models";
+import { DAYS, isPayModel, PAY_MODELS } from "./models";
 import { isFilledLoad, type SheetInput } from "./compute";
 
 /** useActionState contract: returns an error message, or null on success. */
@@ -177,7 +177,27 @@ function parseDriver(form: FormData) {
   if (!isPayModel(payModel)) return "Select what the driver drives.";
   if (phone && phone.replace(/\D/g, "").length < 10) return "Phone needs at least 10 digits.";
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Invalid email.";
-  return { name, pay_model: payModel, truck_number: truck || null, phone: phone || null, email: email || null };
+  // The driver's own rate, only for the group that has one (mixer $/h,
+  // aggregate %); other groups keep NULL = model rates.
+  const kind = PAY_MODELS[payModel].driverRate;
+  let hourly_rate: number | null = null;
+  let revenue_pct: number | null = null;
+  if (kind === "hourly") {
+    hourly_rate = Number(form.get("hourlyRate"));
+    if (!Number.isFinite(hourly_rate) || hourly_rate <= 0 || hourly_rate > 500) return "Driver pay per hour must be between 0 and 500.";
+  } else if (kind === "pct") {
+    revenue_pct = Number(form.get("revenuePct"));
+    if (!Number.isFinite(revenue_pct) || revenue_pct <= 0 || revenue_pct > 100) return "Driver pay % must be between 0 and 100.";
+  }
+  return {
+    name,
+    pay_model: payModel,
+    truck_number: truck || null,
+    phone: phone || null,
+    email: email || null,
+    hourly_rate: hourly_rate === null ? null : Math.round(hourly_rate * 100) / 100,
+    revenue_pct: revenue_pct === null ? null : Math.round(revenue_pct * 100) / 100,
+  };
 }
 
 function driverError(error: { code?: string }, name: string): string {

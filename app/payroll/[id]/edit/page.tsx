@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { requirePayroll } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { SHEET_SELECT, toSheet, type Driver } from "@/lib/payroll/types";
+import { DRIVER_SELECT, SHEET_SELECT, toDriver, toSheet } from "@/lib/payroll/types";
 import { PayrollHeader } from "@/components/payroll/PayrollHeader";
 import { PaySheetForm } from "@/components/payroll/PaySheetForm";
 
@@ -18,7 +18,7 @@ export default async function EditPaySheetPage({ params }: { params: Promise<{ i
   // Active drivers + this sheet's driver even if since deactivated.
   const { data: drivers } = await supabase
     .from("drivers")
-    .select("id, name, pay_model, truck_number, phone, email, active")
+    .select(DRIVER_SELECT)
     .or(`active.eq.true,id.eq.${sheet.driver_id}`)
     .order("name");
 
@@ -30,7 +30,7 @@ export default async function EditPaySheetPage({ params }: { params: Promise<{ i
         role={user.role}
       />
       <div className="mx-auto w-full max-w-6xl">
-        <PaySheetForm drivers={(drivers ?? []) as Driver[]} sheet={sheet} defaultPayDate={sheet.pay_date} />
+        <PaySheetForm drivers={(drivers ?? []).map(toDriver)} sheet={sheet} defaultPayDate={sheet.pay_date} />
       </div>
     </main>
   );

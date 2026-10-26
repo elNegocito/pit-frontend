@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { createDriver, updateDriver, type FormState } from "@/lib/payroll/actions";
-import { PAY_MODEL_KEYS, PAY_MODELS } from "@/lib/payroll/models";
+import { isPayModel, PAY_MODEL_KEYS, PAY_MODELS, type PayModel } from "@/lib/payroll/models";
 import type { Driver } from "@/lib/payroll/types";
 
 function ErrorLine({ state }: { state: FormState }) {
@@ -10,7 +10,51 @@ function ErrorLine({ state }: { state: FormState }) {
   return <p className="mt-2 text-sm text-red-600">{state}</p>;
 }
 
+/** The group's own-rate field: mixer $/hour, aggregate %, nothing for flat bed. */
+function RateField({ model, driver }: { model: PayModel | ""; driver?: Driver }) {
+  const kind = model ? PAY_MODELS[model].driverRate : null;
+  if (kind === "hourly") {
+    return (
+      <label className="text-sm font-medium">
+        Driver pay per hour ($)
+        <input
+          key="hourly"
+          name="hourlyRate"
+          type="number"
+          required
+          min="0.01"
+          max="500"
+          step="0.01"
+          defaultValue={driver?.hourly_rate ?? PAY_MODELS.mixer.hourlyRate}
+          className="mt-1 w-28 rounded-lg border px-3 py-2"
+        />
+      </label>
+    );
+  }
+  if (kind === "pct") {
+    return (
+      <label className="text-sm font-medium">
+        Driver pay (%)
+        <input
+          key="pct"
+          name="revenuePct"
+          type="number"
+          required
+          min="0.01"
+          max="100"
+          step="0.01"
+          defaultValue={driver?.revenue_pct ?? PAY_MODELS.trucking.revenuePct}
+          className="mt-1 w-24 rounded-lg border px-3 py-2"
+        />
+      </label>
+    );
+  }
+  return null;
+}
+
 function Fields({ driver }: { driver?: Driver }) {
+  // Picking the group first shows the rate that group needs.
+  const [model, setModel] = useState<PayModel | "">(driver?.pay_model ?? "");
   return (
     <>
       <label className="min-w-48 flex-1 text-sm font-medium">
@@ -18,8 +62,14 @@ function Fields({ driver }: { driver?: Driver }) {
         <input name="name" defaultValue={driver?.name} required maxLength={120} placeholder="FULL NAME" className="mt-1 w-full rounded-lg border px-3 py-2 uppercase" />
       </label>
       <label className="text-sm font-medium">
-        Drives
-        <select name="payModel" required defaultValue={driver?.pay_model ?? ""} className="mt-1 w-full rounded-lg border px-3 py-2">
+        Group
+        <select
+          name="payModel"
+          required
+          value={model}
+          onChange={(e) => setModel(isPayModel(e.target.value) ? e.target.value : "")}
+          className="mt-1 w-full rounded-lg border px-3 py-2"
+        >
           <option value="" disabled>
             Select…
           </option>
@@ -30,6 +80,7 @@ function Fields({ driver }: { driver?: Driver }) {
           ))}
         </select>
       </label>
+      <RateField model={model} driver={driver} />
       <label className="text-sm font-medium">
         Truck #
         <input name="truck" defaultValue={driver?.truck_number ?? ""} maxLength={40} className="mt-1 w-24 rounded-lg border px-3 py-2" />

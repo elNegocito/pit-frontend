@@ -9,6 +9,17 @@ export interface Driver {
   phone: string | null;
   email: string | null;
   active: boolean;
+  /** Mixer: own $/hour. Aggregate: own %. NULL = model default (migration 011). */
+  hourly_rate: number | null;
+  revenue_pct: number | null;
+}
+
+export const DRIVER_SELECT = "id, name, pay_model, truck_number, phone, email, active, hourly_rate, revenue_pct";
+
+/** numeric columns arrive as strings from PostgREST. */
+export function toDriver(r: Record<string, unknown>): Driver {
+  const n = (v: unknown) => (v === null || v === undefined ? null : Number(v));
+  return { ...(r as unknown as Driver), hourly_rate: n(r.hourly_rate), revenue_pct: n(r.revenue_pct) };
 }
 
 /** A stored pay sheet (totals as computed and frozen by the DB trigger). */

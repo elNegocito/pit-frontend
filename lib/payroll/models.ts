@@ -36,6 +36,11 @@ export interface PayModelConfig {
    * the sheet, off by default); null = the model has no per-yard bonus.
    */
   perYardRate: number | null;
+  /**
+   * Which rate each driver of this group has of their own (saved on the
+   * driver, migration 011): mixer $/hour, aggregate %. null = model rates.
+   */
+  driverRate: "hourly" | "pct" | null;
   /** Header of the free-text last loads column (zone / tons); null = numeric yards. */
   extraLabel: string | null;
   /** Empty load rows the template starts with. */
@@ -53,6 +58,7 @@ export const PAY_MODELS: Record<PayModel, PayModelConfig> = {
     otThreshold: 40,
     byRevenue: true,
     perYardRate: null,
+    driverRate: null,
     extraLabel: "Zone",
     loadRows: 22,
     days: ["MON", "TUE", "WED", "THU", "FRI"],
@@ -73,6 +79,7 @@ export const PAY_MODELS: Record<PayModel, PayModelConfig> = {
     otThreshold: 40,
     byRevenue: false,
     perYardRate: 0.25,
+    driverRate: "hourly",
     extraLabel: null,
     loadRows: 25,
     days: ["MON", "TUE", "WED", "THU", "FRI", "SAT"],
@@ -92,6 +99,7 @@ export const PAY_MODELS: Record<PayModel, PayModelConfig> = {
     otThreshold: 40,
     byRevenue: true,
     perYardRate: null,
+    driverRate: "pct",
     extraLabel: "Tons",
     loadRows: 25,
     days: ["MON", "TUE", "WED", "THU", "FRI", "SAT"],
@@ -109,6 +117,24 @@ export const PAY_MODEL_KEYS = Object.keys(PAY_MODELS) as PayModel[];
 
 export function isPayModel(v: unknown): v is PayModel {
   return typeof v === "string" && v in PAY_MODELS;
+}
+
+/** Overtime pays 1.5x the hourly rate ($28 -> $42). */
+export const OT_MULTIPLIER = 1.5;
+
+/**
+ * Rates a new sheet starts with: the driver's own rate when the group has
+ * one and it is set, else the model default. With overtime, OT = 1.5x hourly.
+ */
+export function sheetRates(
+  model: PayModel,
+  own?: { hourly_rate: number | null; revenue_pct: number | null } | null,
+): { hourly: number; pct: number; ot: number | null } {
+  const m = PAY_MODELS[model];
+  const hourly = (m.driverRate === "hourly" ? own?.hourly_rate : null) ?? m.hourlyRate;
+  const pct = (m.driverRate === "pct" ? own?.revenue_pct : null) ?? m.revenuePct;
+  const ot = m.otRate === null ? null : Math.round(hourly * OT_MULTIPLIER * 100) / 100;
+  return { hourly, pct, ot };
 }
 
 // Printed sheet header (from the Excel: billing phone / email).

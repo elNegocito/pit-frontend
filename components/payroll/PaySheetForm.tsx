@@ -14,7 +14,7 @@ import {
   type LoadLine,
   type SheetInput,
 } from "@/lib/payroll/compute";
-import { DAY_LABELS, PAY_MODEL_KEYS, PAY_MODELS, type Day, type PayModel } from "@/lib/payroll/models";
+import { DAY_LABELS, PAY_MODEL_KEYS, PAY_MODELS, sheetRates, type Day, type PayModel } from "@/lib/payroll/models";
 import type { Driver, PaySheet } from "@/lib/payroll/types";
 
 // Form rows keep the raw text the user typed (revenue accepts "25.93*9.5").
@@ -84,16 +84,18 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
   const initialDriver = drivers.find((d) => d.id === (init?.driver_id ?? defaultDriverId));
   const initialModel: PayModel = init?.pay_model ?? initialDriver?.pay_model ?? "trucking";
   const m0 = PAY_MODELS[initialModel];
+  // New sheet: the driver's own rate (mixer $/h, aggregate %), else defaults.
+  const r0 = sheetRates(initialModel, initialDriver);
 
   const [driverId, setDriverId] = useState(init?.driver_id ?? initialDriver?.id ?? "");
   const [payModel, setPayModel] = useState<PayModel>(initialModel);
   const [truck, setTruck] = useState(init?.truck_number ?? initialDriver?.truck_number ?? "");
   const [payDate, setPayDate] = useState(sheet?.pay_date ?? defaultPayDate);
   const [notes, setNotes] = useState(init?.notes ?? "");
-  const [pctRaw, setPctRaw] = useState(String(init?.revenue_pct ?? m0.revenuePct));
-  const [rateRaw, setRateRaw] = useState(String(init?.hourly_rate ?? m0.hourlyRate));
+  const [pctRaw, setPctRaw] = useState(String(init?.revenue_pct ?? r0.pct));
+  const [rateRaw, setRateRaw] = useState(String(init?.hourly_rate ?? r0.hourly));
   const [otRaw, setOtRaw] = useState(
-    init ? (init.ot_rate === null ? "" : String(init.ot_rate)) : m0.otRate === null ? "" : String(m0.otRate),
+    init ? (init.ot_rate === null ? "" : String(init.ot_rate)) : r0.ot === null ? "" : String(r0.ot),
   );
   const [otThresholdRaw, setOtThresholdRaw] = useState(String(init?.ot_threshold ?? m0.otThreshold));
   // Extra per yard is an optional bonus: off by default, on when the sheet
@@ -136,13 +138,17 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
 
   const model = PAY_MODELS[payModel];
 
-  /** Switching model loads that model's template (rates, days, extras), keeping what was typed. */
-  function applyModel(next: PayModel) {
+  /**
+   * Switching model loads that model's template (rates, days, extras),
+   * keeping what was typed. Rates come from the driver when they have their own.
+   */
+  function applyModel(next: PayModel, driver = drivers.find((x) => x.id === driverId)) {
     const m = PAY_MODELS[next];
+    const r = sheetRates(next, driver);
     setPayModel(next);
-    setPctRaw(String(m.revenuePct));
-    setRateRaw(String(m.hourlyRate));
-    setOtRaw(m.otRate === null ? "" : String(m.otRate));
+    setPctRaw(String(r.pct));
+    setRateRaw(String(r.hourly));
+    setOtRaw(r.ot === null ? "" : String(r.ot));
     setOtThresholdRaw(String(m.otThreshold));
     setPerYardRaw(m.perYardRate === null ? "" : String(m.perYardRate));
     setYardBonus(false);
@@ -158,7 +164,15 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
     // Loads still on the previous driver's truck (or none) move to the new one.
     setLoads((rows) => rows.map((r) => (!r.truck || r.truck === truck ? { ...r, truck: next } : r)));
     setTruck(next);
-    if (d.pay_model !== payModel) applyModel(d.pay_model);
+    if (d.pay_model !== payModel) {
+      applyModel(d.pay_model, d);
+    } else {
+      // Same group: only the rates change to this driver's own.
+      const r = sheetRates(d.pay_model, d);
+      setPctRaw(String(r.pct));
+      setRateRaw(String(r.hourly));
+      setOtRaw(r.ot === null ? "" : String(r.ot));
+    }
   }
 
   /** Same truck on every load; single loads can still be changed afterwards. */

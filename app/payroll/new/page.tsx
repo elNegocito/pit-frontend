@@ -2,7 +2,8 @@ import Link from "next/link";
 import { requirePayroll } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { addDays, todayInPit, upcomingFriday } from "@/lib/timezone";
-import { SHEET_SELECT, toSheet, type Driver, type PaySheet } from "@/lib/payroll/types";
+import { DRIVER_SELECT, SHEET_SELECT, toDriver, toSheet, type PaySheet } from "@/lib/payroll/types";
+import { sheetRates } from "@/lib/payroll/models";
 import { PayrollHeader } from "@/components/payroll/PayrollHeader";
 import { PaySheetForm } from "@/components/payroll/PaySheetForm";
 
@@ -18,11 +19,13 @@ export default async function NewPaySheetPage({
   const supabase = await createClient();
 
   const [{ data: drivers }, copied] = await Promise.all([
-    supabase.from("drivers").select("id, name, pay_model, truck_number, phone, email, active").eq("active", true).order("name"),
+    supabase.from("drivers").select(DRIVER_SELECT).eq("active", true).order("name"),
     one(sp.from)
       ? supabase.from("pay_sheets").select(SHEET_SELECT).eq("id", one(sp.from)).maybeSingle()
       : Promise.resolve({ data: null }),
   ]);
+
+  const list = (drivers ?? []).map(toDriver);
 
   // "Copy for next week": same driver, truck, rates, days and extras (labels
   // only); loads, hours and amounts start empty; pay date one week later.
@@ -30,8 +33,14 @@ export default async function NewPaySheetPage({
   let payDate = upcomingFriday(todayInPit());
   if (copied.data) {
     const src = toSheet(copied.data);
+    // Rates follow the driver's current own rate (it may have changed).
+    const own = list.find((d) => d.id === src.driver_id);
+    const rates = own ? sheetRates(src.pay_model, own) : null;
     template = {
       ...src,
+      ...(rates && own && (own.hourly_rate !== null || own.revenue_pct !== null)
+        ? { hourly_rate: rates.hourly, revenue_pct: rates.pct, ot_rate: rates.ot }
+        : {}),
       notes: null,
       loads: [],
       hours: src.hours.map((h) => ({ ...h, hours: 0, note: "" })),
@@ -40,7 +49,6 @@ export default async function NewPaySheetPage({
     payDate = addDays(src.pay_date, 7);
   }
 
-  const list = (drivers ?? []) as Driver[];
 
   return (
     <main className="min-h-full flex-1 bg-zinc-100 px-4 py-6">
