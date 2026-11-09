@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { voidPaySheet } from "@/lib/payroll/actions";
 import { buildSheetPdf, sheetFileName, sheetSummary } from "@/lib/payroll/pdf";
+import { createClient } from "@/lib/supabase/client";
 import type { PaySheet } from "@/lib/payroll/types";
 
 /** wa.me wants digits with country code; 10-digit numbers are US (+1). */
@@ -23,6 +24,12 @@ function canShareFiles(): boolean {
   }
 }
 const noSubscribe = () => () => {};
+
+// Why the email could not go out by itself (send-pay-sheet results).
+const EMAIL_FALLBACK: Record<string, string> = {
+  invalid_credentials: "The Gmail account was rejected: check GMAIL_USER and GMAIL_APP_PASSWORD.",
+  send_failed: "Gmail could not send it.",
+};
 
 const btn = "rounded-lg border bg-white px-3 py-1.5 text-sm hover:bg-zinc-50 disabled:opacity-50";
 
@@ -79,11 +86,31 @@ export function SheetActions({
     setMessage("PDF downloaded — attach it in the WhatsApp chat that just opened.");
   }
 
-  function email() {
+  function emailManually(reason = "") {
     download();
     const subject = `ASG Pay Sheet #${sheet.sheet_number} — ${sheet.driver_name} — ${sheet.pay_date}`;
     window.location.href = `mailto:${driverEmail ?? ""}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(sheetSummary(sheet))}`;
-    setMessage("PDF downloaded — attach it to the email that just opened.");
+    setMessage(`${reason ? `${reason} ` : ""}PDF downloaded — attach it to the email that just opened.`);
+  }
+
+  // Sent by the send-pay-sheet Edge Function when its Gmail secrets are set;
+  // otherwise (not configured, not deployed, rejected) falls back to the
+  // manual download + mail app flow.
+  function email() {
+    if (!driverEmail) return emailManually();
+    if (!confirm(`Send pay sheet #${sheet.sheet_number} to ${driverEmail}?`)) return;
+    setMessage(null);
+    startTransition(async () => {
+      const pdfBase64 = buildSheetPdf(sheet).output("datauristring").split(",")[1];
+      const { data, error } = await createClient().functions.invoke<{ result: string; to?: string }>("send-pay-sheet", {
+        body: { sheetId: sheet.id, pdfBase64 },
+      });
+      if (!error && data?.result === "sent") {
+        setMessage(`Sent to ${data.to}.`);
+        return;
+      }
+      emailManually(EMAIL_FALLBACK[data?.result ?? ""] ?? "Automatic email is not set up.");
+    });
   }
 
   function voidSheet() {
@@ -117,7 +144,7 @@ export function SheetActions({
         <button type="button" onClick={whatsapp} className={btn} title={driverPhone ? `To ${driverPhone}` : "No phone on file: pick the chat in WhatsApp"}>
           WhatsApp
         </button>
-        <button type="button" onClick={email} className={btn} title={driverEmail ? `To ${driverEmail}` : "No email on file"}>
+        <button type="button" onClick={email} disabled={pending} className={btn} title={driverEmail ? `To ${driverEmail}` : "No email on file"}>
           Email
         </button>
         <Link href={`/payroll/new?from=${sheet.id}`} className={btn} title="New sheet for the same driver, rates and extras">

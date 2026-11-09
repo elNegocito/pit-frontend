@@ -110,3 +110,11 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Pay sheet emails (Gmail)
+
+The Email button on a pay sheet sends the PDF to the driver's email automatically when the `send-pay-sheet` Edge Function is deployed and has valid Gmail secrets. Otherwise it keeps working as before (downloads the PDF and opens the mail app).
+
+1. On the Gmail account, turn on 2-Step Verification and create an **App Password** (Google Account > Security > App passwords).
+2. In Supabase, go to Edge Functions > Secrets and add `GMAIL_USER` (the address), `GMAIL_APP_PASSWORD`, and optionally `GMAIL_FROM_NAME` (default "ASG Payroll"). With the CLI: `supabase secrets set GMAIL_USER=... GMAIL_APP_PASSWORD=...`. Changes apply right away, with no redeploy.
+3. Deploy once: `pnpm supabase functions deploy send-pay-sheet --project-ref <ref>`.

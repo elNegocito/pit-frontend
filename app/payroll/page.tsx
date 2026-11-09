@@ -1,20 +1,28 @@
 import Link from "next/link";
 import { requirePayroll } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { formatTicketDate } from "@/lib/timezone";
+import { formatTicketDate, todayInPit } from "@/lib/timezone";
 import { money, num } from "@/lib/payroll/compute";
-import { isPayModel, PAY_MODEL_KEYS, PAY_MODELS } from "@/lib/payroll/models";
+import { isPayModel, PAY_MODEL_KEYS, PAY_MODELS, type PayModel } from "@/lib/payroll/models";
+import { sheetState } from "@/lib/payroll/status";
+import { DRIVER_SELECT, toDriver } from "@/lib/payroll/types";
 import { PayrollHeader } from "@/components/payroll/PayrollHeader";
+import { SheetBadge } from "@/components/payroll/SheetBadge";
 
 const PAGE_SIZE = 50;
+// The week's view lists every current sheet on one page (a handful per driver).
+const CURRENT_LIMIT = 1000;
+// Same order as the Drivers page.
+const GROUPS: PayModel[] = ["mixer", "trucking", "flatbed"];
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 const LIST_SELECT =
-  "id, sheet_number, driver_name, truck_number, pay_model, pay_date, period_start, period_end, loads_count, total_hours, total_pay, status, created_by_name, updated_by_name, edit_count";
+  "id, sheet_number, driver_id, driver_name, truck_number, pay_model, pay_date, period_start, period_end, loads_count, total_hours, total_pay, status, created_by_name, updated_by_name, edit_count";
 
 type Row = {
   id: string;
   sheet_number: number;
+  driver_id: string;
   driver_name: string;
   truck_number: string | null;
   pay_model: string;
@@ -47,9 +55,17 @@ export default async function PayrollPage({
     to: one(sp.to),
     worked: one(sp.worked),
     by: one(sp.by).trim(),
-    status: one(sp.status) || "active",
+    status: one(sp.status),
   };
   const page = Math.max(1, parseInt(one(sp.page) || "1", 10) || 1);
+  const today = todayInPit();
+  // Old sheets only show up when looked for: any search widens the default
+  // from this week's sheets to everything (finished and void included).
+  const searching = Boolean(
+    f.driver || ISO_DATE.test(f.from) || ISO_DATE.test(f.to) || ISO_DATE.test(f.worked) || f.by,
+  );
+  const status = ["current", "finished", "void", "all"].includes(f.status) ? f.status : searching ? "all" : "current";
+  const weekView = status === "current" && !searching;
   const like = (s: string) => `%${s.replace(/[%_\\,()]/g, "")}%`;
 
   const supabase = await createClient();
@@ -62,15 +78,30 @@ export default async function PayrollPage({
   // JSON string on purpose: supabase-js would encode an array as a Postgres array literal.
   if (ISO_DATE.test(f.worked)) q = q.contains("loads", JSON.stringify([{ date: f.worked }]));
   if (f.by) q = q.or(`created_by_name.ilike.${like(f.by)},updated_by_name.ilike.${like(f.by)}`);
-  if (f.status === "active" || f.status === "void") q = q.eq("status", f.status);
-  const from = (page - 1) * PAGE_SIZE;
-  const { data, count } = await q
-    .order("pay_date", { ascending: false })
-    .order("sheet_number", { ascending: false })
-    .range(from, from + PAGE_SIZE - 1);
+  if (status === "current") q = q.eq("status", "active").gte("pay_date", today);
+  if (status === "finished") q = q.eq("status", "active").lt("pay_date", today);
+  if (status === "void") q = q.eq("status", "void");
+  const size = weekView ? CURRENT_LIMIT : PAGE_SIZE;
+  const from = (page - 1) * size;
+  const [{ data, count }, { data: driverRows }] = await Promise.all([
+    q
+      .order("pay_date", { ascending: false })
+      .order("sheet_number", { ascending: false })
+      .range(from, from + size - 1),
+    supabase.from("drivers").select(DRIVER_SELECT).order("name"),
+  ]);
   const rows = (data ?? []) as Row[];
   const total = count ?? 0;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(total / size));
+
+  // One card per driver with the sheets found. The week's view also lists the
+  // active drivers still without a sheet, so a missing one stands out.
+  const drivers = (driverRows ?? []).map(toDriver);
+  const byDriver = new Map<string, Row[]>();
+  for (const r of rows) byDriver.set(r.driver_id, [...(byDriver.get(r.driver_id) ?? []), r]);
+  const cards = drivers
+    .filter((x) => byDriver.has(x.id) || (weekView && x.active && (!isPayModel(f.model) || x.pay_model === f.model)))
+    .map((driver) => ({ driver, sheets: byDriver.get(driver.id) ?? [] }));
 
   const qs = (p: number) => {
     const u = new URLSearchParams(Object.entries(f).filter(([, v]) => v) as [string, string][]);
@@ -118,7 +149,9 @@ export default async function PayrollPage({
           <label className="text-sm font-medium">
             Status
             <select name="status" defaultValue={f.status} className="mt-1 w-full rounded-lg border px-3 py-2">
-              <option value="active">Active</option>
+              <option value="">Default</option>
+              <option value="current">Active</option>
+              <option value="finished">Finished</option>
               <option value="void">Void</option>
               <option value="all">All</option>
             </select>
@@ -128,75 +161,80 @@ export default async function PayrollPage({
             <Link href="/payroll" className="rounded-lg border px-4 py-2 text-sm hover:bg-zinc-100">
               Clear
             </Link>
-            <span className="ml-auto text-sm text-zinc-500">{total} sheets</span>
+            <span className="ml-auto text-sm text-zinc-500">
+              {total} sheets{weekView ? " this week" : ""}
+            </span>
           </div>
         </form>
 
-        <div className="overflow-x-auto rounded-2xl bg-white shadow">
-          <table className="w-full min-w-[900px] text-sm">
-            <thead className="border-b text-left text-xs text-zinc-500 uppercase">
-              <tr>
-                <th className="px-3 py-2">#</th>
-                <th className="px-3 py-2">Pay date</th>
-                <th className="px-3 py-2">Driver</th>
-                <th className="px-3 py-2">Truck</th>
-                <th className="px-3 py-2">Drives</th>
-                <th className="px-3 py-2">Loads period</th>
-                <th className="px-3 py-2 text-right">Loads</th>
-                <th className="px-3 py-2 text-right">Hours</th>
-                <th className="px-3 py-2 text-right">Total pay</th>
-                <th className="px-3 py-2">Prepared by</th>
-                <th className="px-3 py-2">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <tr key={r.id} className={`border-b border-zinc-100 hover:bg-zinc-50 ${r.status === "void" ? "text-zinc-400 line-through" : ""}`}>
-                  <td className="px-3 py-2">
-                    <Link href={`/payroll/${r.id}`} className="font-medium text-zinc-900 underline-offset-2 hover:underline">
-                      {r.sheet_number}
-                    </Link>
-                  </td>
-                  <td className="px-3 py-2">{d(r.pay_date)}</td>
-                  <td className="px-3 py-2">
-                    <Link href={`/payroll/${r.id}`} className="hover:underline">
-                      {r.driver_name}
-                    </Link>
-                  </td>
-                  <td className="px-3 py-2">{r.truck_number}</td>
-                  <td className="px-3 py-2">{isPayModel(r.pay_model) ? PAY_MODELS[r.pay_model].label : r.pay_model}</td>
-                  <td className="px-3 py-2 text-xs">
-                    {r.period_start ? `${d(r.period_start)} – ${d(r.period_end)}` : "—"}
-                  </td>
-                  <td className="px-3 py-2 text-right tabular-nums">{r.loads_count}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">{num(Number(r.total_hours))}</td>
-                  <td className="px-3 py-2 text-right font-semibold tabular-nums">{money(Number(r.total_pay))}</td>
-                  <td className="px-3 py-2 text-xs">
-                    {r.created_by_name}
-                    {r.edit_count > 0 && <span className="block text-zinc-500">edited by {r.updated_by_name}</span>}
-                  </td>
-                  <td className="px-3 py-2 text-xs">
-                    {r.status === "void" ? (
-                      <span className="rounded bg-red-100 px-1.5 py-0.5 font-semibold text-red-700 no-underline">VOID</span>
-                    ) : r.edit_count > 0 ? (
-                      <span className="rounded bg-amber-100 px-1.5 py-0.5 text-amber-800">Edited</span>
-                    ) : null}
-                  </td>
-                </tr>
+        {GROUPS.map((model) => {
+          const list = cards.filter((c) => c.driver.pay_model === model);
+          if (list.length === 0) return null;
+          return (
+            <section key={model} className="space-y-3">
+              <h2 className="text-base font-semibold">
+                {PAY_MODELS[model].label} <span className="font-normal text-zinc-500">({list.length})</span>
+              </h2>
+              {list.map(({ driver, sheets }) => (
+                <div key={driver.id} className="rounded-2xl bg-white p-4 shadow">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                    <span className="font-semibold">{driver.name}</span>
+                    {driver.truck_number && <span className="text-sm text-zinc-500">Truck #{driver.truck_number}</span>}
+                    {!driver.active && <span className="text-xs text-zinc-400">Inactive driver</span>}
+                    {driver.active && (
+                      <Link href={`/payroll/new?driver=${driver.id}`} className="ml-auto rounded-lg border px-3 py-1 text-sm hover:bg-zinc-100">
+                        + New sheet
+                      </Link>
+                    )}
+                  </div>
+                  {sheets.length === 0 ? (
+                    <p className="mt-2 text-sm text-zinc-400">No sheet this week.</p>
+                  ) : (
+                    <ul className="mt-3 divide-y divide-zinc-100 border-t border-zinc-100">
+                      {sheets.map((r) => {
+                        const state = sheetState(r.status, r.pay_date, today);
+                        return (
+                          <li key={r.id}>
+                            <Link
+                              href={`/payroll/${r.id}`}
+                              className={`flex flex-wrap items-center gap-x-5 gap-y-1 px-1 py-2 text-sm hover:bg-zinc-50 ${state === "void" ? "text-zinc-400" : ""}`}
+                            >
+                              <span className="font-medium">#{r.sheet_number}</span>
+                              <span>Pay date {d(r.pay_date)}</span>
+                              <span className="text-xs text-zinc-500">
+                                {r.period_start ? `Loads ${d(r.period_start)} – ${d(r.period_end)}` : "No loads yet"}
+                              </span>
+                              <span className="tabular-nums">{r.loads_count} loads</span>
+                              <span className="tabular-nums">{num(Number(r.total_hours))} h</span>
+                              <span className="text-xs text-zinc-500">
+                                {r.created_by_name}
+                                {r.edit_count > 0 && ` · edited by ${r.updated_by_name}`}
+                              </span>
+                              <span className="ml-auto flex items-center gap-3">
+                                <span className={`font-semibold tabular-nums ${state === "void" ? "line-through" : ""}`}>
+                                  {money(Number(r.total_pay))}
+                                </span>
+                                <SheetBadge state={state} />
+                              </span>
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
               ))}
-              {rows.length === 0 && (
-                <tr>
-                  <td colSpan={11} className="px-3 py-8 text-center text-zinc-400">
-                    No pay sheets found.{" "}
-                    <Link href="/payroll/new" className="underline">
-                      Create one
-                    </Link>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+            </section>
+          );
+        })}
+        {cards.length === 0 && (
+          <p className="rounded-2xl bg-white p-8 text-center text-sm text-zinc-400 shadow">
+            No pay sheets found.{" "}
+            <Link href="/payroll/new" className="underline">
+              Create one
+            </Link>
+          </p>
+        )}
 
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-3 text-sm">

@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 import { requirePayroll } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { PIT_TIME_ZONE } from "@/lib/timezone";
+import { PIT_TIME_ZONE, todayInPit } from "@/lib/timezone";
+import { sheetState } from "@/lib/payroll/status";
 import { SHEET_SELECT, toSheet, type PaySheetEvent } from "@/lib/payroll/types";
 import { PayrollHeader } from "@/components/payroll/PayrollHeader";
+import { SheetBadge } from "@/components/payroll/SheetBadge";
 import { SheetActions } from "@/components/payroll/SheetActions";
 import { SheetHistory } from "@/components/payroll/SheetHistory";
 import { SheetView } from "@/components/payroll/SheetView";
@@ -39,6 +41,7 @@ export default async function PaySheetPage({ params }: { params: Promise<{ id: s
         role={user.role}
       />
       <div className="mx-auto w-full max-w-6xl space-y-4">
+        <SheetBadge state={sheetState(sheet.status, sheet.pay_date, todayInPit())} />
         <SheetActions sheet={sheet} driverPhone={driver?.phone ?? null} driverEmail={driver?.email ?? null} />
         <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
           <SheetView sheet={sheet} />
