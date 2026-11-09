@@ -69,7 +69,9 @@ function clean(input: SheetInput) {
     adjustments: adjustments.map((a) => ({
       label: text(a.label, 80).toUpperCase(),
       amount: Math.round(a.amount * 100) / 100,
-      deduction: Boolean(a.deduction),
+      // Extras always add (client rule). Old sheets keep their stored sign
+      // until edited; the trigger still honors it.
+      deduction: false,
     })),
   };
 }

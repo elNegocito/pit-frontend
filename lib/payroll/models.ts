@@ -46,7 +46,8 @@ export interface PayModelConfig {
   /** Empty load rows the template starts with. */
   loadRows: number;
   days: Day[];
-  adjustments: { label: string; deduction: boolean }[];
+  /** Extras lines of the template; they always add to the pay. */
+  adjustments: string[];
 }
 
 export const PAY_MODELS: Record<PayModel, PayModelConfig> = {
@@ -63,12 +64,11 @@ export const PAY_MODELS: Record<PayModel, PayModelConfig> = {
     loadRows: 22,
     days: ["MON", "TUE", "WED", "THU", "FRI"],
     adjustments: [
-      { label: "HOLIDAY PAY", deduction: false },
-      { label: "SAFETY MEETING PAY", deduction: false },
-      { label: "BAD WEATHER DAY", deduction: false },
-      { label: "DOT BONUS PAY", deduction: false },
-      { label: "PAYROLL ERROR", deduction: false },
-      { label: "MISC DEDUCTIONS", deduction: true },
+      "HOLIDAY PAY",
+      "SAFETY MEETING PAY",
+      "BAD WEATHER DAY",
+      "DOT BONUS PAY",
+      "PAYROLL ERROR",
     ],
   },
   mixer: {
@@ -84,10 +84,9 @@ export const PAY_MODELS: Record<PayModel, PayModelConfig> = {
     loadRows: 25,
     days: ["MON", "TUE", "WED", "THU", "FRI", "SAT"],
     adjustments: [
-      { label: "SAFETY MEETING PAY", deduction: false },
-      { label: "SAFETY BONUS", deduction: false },
-      { label: "WEEKLY GROSS WAGE BONUS", deduction: false },
-      { label: "MISC DEDUCTIONS", deduction: true },
+      "SAFETY MEETING PAY",
+      "SAFETY BONUS",
+      "WEEKLY GROSS WAGE BONUS",
     ],
   },
   // Key kept as "trucking" (stored in the DB); the client calls it Aggregate.
@@ -104,11 +103,10 @@ export const PAY_MODELS: Record<PayModel, PayModelConfig> = {
     loadRows: 25,
     days: ["MON", "TUE", "WED", "THU", "FRI", "SAT"],
     adjustments: [
-      { label: "SAFETY MEETING PAY", deduction: false },
-      { label: "BAD WEATHER PAY", deduction: false },
-      { label: "PAYROLL ERROR", deduction: false },
-      { label: "WEEKLY GROSS WAGE BONUS", deduction: false },
-      { label: "MISC DEDUCTIONS", deduction: true },
+      "SAFETY MEETING PAY",
+      "BAD WEATHER PAY",
+      "PAYROLL ERROR",
+      "WEEKLY GROSS WAGE BONUS",
     ],
   },
 };
