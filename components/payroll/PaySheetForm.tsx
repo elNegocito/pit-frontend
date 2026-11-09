@@ -27,7 +27,6 @@ interface AdjRow {
   key: number;
   label: string;
   amountRaw: string;
-  deduction: boolean;
 }
 interface HoursRow {
   day: Day;
@@ -56,8 +55,8 @@ function templateHours(model: PayModel, keep: HoursRow[] = []): HoursRow[] {
 
 function templateAdjustments(model: PayModel, keep: AdjRow[] = []): AdjRow[] {
   return PAY_MODELS[model].adjustments.map((a) => {
-    const prev = keep.find((k) => k.label.trim().toUpperCase() === a.label);
-    return { key: nextKey++, label: a.label, amountRaw: prev?.amountRaw ?? "", deduction: a.deduction };
+    const prev = keep.find((k) => k.label.trim().toUpperCase() === a);
+    return { key: nextKey++, label: a, amountRaw: prev?.amountRaw ?? "" };
   });
 }
 
@@ -131,7 +130,6 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
           key: nextKey++,
           label: a.label,
           amountRaw: a.amount ? String(a.amount) : "",
-          deduction: a.deduction,
         }))
       : templateAdjustments(initialModel),
   );
@@ -203,7 +201,8 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
     const adjLines: Adjustment[] = adjustments.map((a) => ({
       label: a.label,
       amount: n(a.amountRaw, `adj-${a.key}`),
-      deduction: a.deduction,
+      // Client rule: extras always add (no deductions on a pay sheet).
+      deduction: false,
     }));
     const pct = n(pctRaw, "pct");
     const rate = n(rateRaw, "rate");
@@ -630,7 +629,6 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
                     aria-label="Extra per yard"
                     className="h-3.5 w-3.5"
                   />
-                  <span className="invisible">−</span>
                 </label>
                 <output className={`${cell} w-24 text-right tabular-nums ${yardBonus ? "" : "text-zinc-400"}`}>
                   {t.yardsPay.toFixed(2)}
@@ -648,15 +646,8 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
                   maxLength={80}
                   className={`${cell} min-w-0 flex-1 text-xs uppercase`}
                 />
-                <label className="flex items-center gap-1 text-xs text-zinc-500" title="Subtract from total">
-                  <input
-                    type="checkbox"
-                    checked={a.deduction}
-                    onChange={(e) => updateAdj(a.key, { deduction: e.target.checked })}
-                    className="h-3.5 w-3.5"
-                  />
-                  −
-                </label>
+                {/* Lines up the amounts with the Extra per yard checkbox. */}
+                <span aria-hidden className="w-3.5" />
                 <input
                   value={a.amountRaw}
                   onChange={(e) => updateAdj(a.key, { amountRaw: e.target.value })}
@@ -676,7 +667,7 @@ export function PaySheetForm({ drivers, sheet, template, defaultDriverId, defaul
             ))}
             <button
               type="button"
-              onClick={() => setAdjustments((rows) => [...rows, { key: nextKey++, label: "", amountRaw: "", deduction: false }])}
+              onClick={() => setAdjustments((rows) => [...rows, { key: nextKey++, label: "", amountRaw: "" }])}
               className="mt-1 rounded-lg border px-3 py-1 text-xs hover:bg-zinc-100"
             >
               + Add line

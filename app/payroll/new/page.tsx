@@ -44,7 +44,8 @@ export default async function NewPaySheetPage({
       notes: null,
       loads: [],
       hours: src.hours.map((h) => ({ ...h, hours: 0, note: "" })),
-      adjustments: src.adjustments.map((a) => ({ ...a, amount: 0 })),
+      // Old deduction lines (MISC DEDUCTIONS) are not carried over: extras only add now.
+      adjustments: src.adjustments.filter((a) => !a.deduction).map((a) => ({ ...a, amount: 0 })),
     };
     payDate = addDays(src.pay_date, 7);
   }
