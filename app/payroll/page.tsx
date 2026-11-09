@@ -8,6 +8,7 @@ import { sheetState } from "@/lib/payroll/status";
 import { DRIVER_SELECT, toDriver } from "@/lib/payroll/types";
 import { PayrollHeader } from "@/components/payroll/PayrollHeader";
 import { SheetBadge } from "@/components/payroll/SheetBadge";
+import { FilterCombobox } from "@/components/payroll/FilterCombobox";
 
 const PAGE_SIZE = 50;
 // The week's view lists every current sheet on one page (a handful per driver).
@@ -83,12 +84,15 @@ export default async function PayrollPage({
   if (status === "void") q = q.eq("status", "void");
   const size = weekView ? CURRENT_LIMIT : PAGE_SIZE;
   const from = (page - 1) * size;
-  const [{ data, count }, { data: driverRows }] = await Promise.all([
+  const [{ data, count }, { data: driverRows }, { data: authorRows }] = await Promise.all([
     q
       .order("pay_date", { ascending: false })
       .order("sheet_number", { ascending: false })
       .range(from, from + size - 1),
     supabase.from("drivers").select(DRIVER_SELECT).order("name"),
+    // Names for the "Prepared / edited by" filter (snapshots on the sheets:
+    // payroll users cannot read other users' profiles).
+    supabase.from("pay_sheets").select("created_by_name, updated_by_name").order("updated_at", { ascending: false }).limit(1000),
   ]);
   const rows = (data ?? []) as Row[];
   const total = count ?? 0;
@@ -97,6 +101,9 @@ export default async function PayrollPage({
   // One card per driver with the sheets found. The week's view also lists the
   // active drivers still without a sheet, so a missing one stands out.
   const drivers = (driverRows ?? []).map(toDriver);
+  const authors = [
+    ...new Set((authorRows ?? []).flatMap((r) => [r.created_by_name, r.updated_by_name]).filter((n): n is string => Boolean(n))),
+  ].sort();
   const byDriver = new Map<string, Row[]>();
   for (const r of rows) byDriver.set(r.driver_id, [...(byDriver.get(r.driver_id) ?? []), r]);
   const cards = drivers
@@ -117,7 +124,7 @@ export default async function PayrollPage({
         <form className="grid gap-3 rounded-2xl bg-white p-4 shadow sm:grid-cols-3 lg:grid-cols-7">
           <label className="text-sm font-medium lg:col-span-2">
             Driver
-            <input name="driver" defaultValue={f.driver} placeholder="Name" className="mt-1 w-full rounded-lg border px-3 py-2" />
+            <FilterCombobox key={f.driver} name="driver" defaultValue={f.driver} options={drivers.map((x) => x.name)} placeholder="Name" />
           </label>
           <label className="text-sm font-medium">
             Drives
@@ -144,7 +151,7 @@ export default async function PayrollPage({
           </label>
           <label className="text-sm font-medium">
             Prepared / edited by
-            <input name="by" defaultValue={f.by} className="mt-1 w-full rounded-lg border px-3 py-2" />
+            <FilterCombobox key={f.by} name="by" defaultValue={f.by} options={authors} />
           </label>
           <label className="text-sm font-medium">
             Status
