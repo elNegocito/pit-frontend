@@ -84,6 +84,22 @@ Y además: truck **222** con gross **40 t**, truck **1100** con gross **41.79 t*
 
 Cada vez que quieras empezar de cero, repite los dos comandos de este paso.
 
+### CTAL (carriers, log semanal, statements)
+
+La migración 012 crea las tablas `ctal_*` y el bucket privado `ctal-docs` (sin datos). Para tener una semana de ejemplo, con carriers y customers **ficticios** que ejercitan todas las reglas:
+
+```bash
+docker exec -i supabase_db_pit-frontend psql -U postgres -d postgres < supabase/dev/ctal-sample-week.sql
+```
+
+Entra como `admin@asgoperations.com` en `/ctal`; los totales esperados están en la cabecera del `.sql`.
+
+> **El repo de GitHub es público.** Los datos reales del cliente (su semana de Excel, sus customers y rates) no se versionan: viven en `supabase/dev/private/` (ignorado por git).
+
+Si ya tenías la BD local levantada y no quieres borrarla, `pnpm supabase migration up` aplica sólo las migraciones que falten.
+
+El email automático de statements usa la Edge Function `send-carrier-statement`; en local, sin secrets de Gmail, la app descarga el PDF y abre el programa de correo.
+
 ## 5. Correr la app
 
 ```bash

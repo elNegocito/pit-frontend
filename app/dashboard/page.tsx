@@ -126,6 +126,9 @@ export default async function DashboardPage({
           <Link href="/payroll" className="rounded-lg border bg-white px-3 py-1.5 text-sm hover:bg-zinc-50">
             Payroll
           </Link>
+          <Link href="/ctal" className="rounded-lg border bg-white px-3 py-1.5 text-sm hover:bg-zinc-50">
+            CTAL
+          </Link>
           <SignOutButton />
         </div>
       </div>

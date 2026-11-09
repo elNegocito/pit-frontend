@@ -17,6 +17,17 @@
   --font-cute: var(--ff-quicksand), sans-serif;
   --shadow-cute: 0 8px 24px -4px rgba(244, 63, 94, 0.15), 0 4px 8px -2px rgba(244, 63, 94, 0.08);
   --shadow-cute-sm: 0 4px 12px rgba(244, 63, 94, 0.12);
+
+  /* CTAL section: the dark green of the owner's carrier sheet on warm paper. */
+  --color-pine-950: #0f2e26;
+  --color-pine-900: #143d32;
+  --color-pine-700: #1c5b48;
+  --color-pine-500: #3d8a72;
+  --color-pine-200: #c9ddd3;
+  --color-pine-100: #e2ede7;
+  --color-pine-50: #f1f6f3;
+  --color-paper: #f4f4ef;
+  --color-rule: #dcdfd6;
 }
 
 /* NOTE: no prefers-color-scheme dark block on purpose. All surfaces are
@@ -70,4 +81,15 @@ input::placeholder {
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #db2777;
+}
+
+/* CTAL log: number inputs without spinners (they steal width in a dense grid). */
+.ctal input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.ctal input[type="number"]::-webkit-outer-spin-button,
+.ctal input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
