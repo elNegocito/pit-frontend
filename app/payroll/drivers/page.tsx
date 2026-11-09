@@ -34,18 +34,23 @@ export default async function DriversPage() {
         {GROUPS.map(({ model, note }) => {
           const list = drivers.filter((d) => d.pay_model === model);
           return (
-            <section key={model} className="space-y-3">
-              <div>
-                <h2 className="text-base font-semibold">
-                  {PAY_MODELS[model].label} <span className="font-normal text-zinc-500">({list.length})</span>
-                </h2>
-                <p className="text-sm text-zinc-500">{note}</p>
-              </div>
+            <details key={model} open className="group">
+              <summary className="flex cursor-pointer list-none items-center gap-2 select-none [&::-webkit-details-marker]:hidden">
+                <span aria-hidden className="text-xs text-zinc-500 transition-transform group-open:rotate-90">▶</span>
+                <div>
+                  <h2 className="text-base font-semibold">
+                    {PAY_MODELS[model].label} <span className="font-normal text-zinc-500">({list.length})</span>
+                  </h2>
+                  <p className="text-sm text-zinc-500">{note}</p>
+                </div>
+              </summary>
+              <div className="mt-3 space-y-3">
               {list.map((d) => (
                 <DriverRowForm key={d.id} driver={d} />
               ))}
               {list.length === 0 && <p className="text-sm text-zinc-400">No {PAY_MODELS[model].label.toLowerCase()} drivers yet.</p>}
-            </section>
+              </div>
+            </details>
           );
         })}
       </div>

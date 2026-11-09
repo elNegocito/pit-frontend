@@ -178,10 +178,14 @@ export default async function PayrollPage({
           const list = cards.filter((c) => c.driver.pay_model === model);
           if (list.length === 0) return null;
           return (
-            <section key={model} className="space-y-3">
-              <h2 className="text-base font-semibold">
-                {PAY_MODELS[model].label} <span className="font-normal text-zinc-500">({list.length})</span>
-              </h2>
+            <details key={model} open className="group">
+              <summary className="flex cursor-pointer list-none items-center gap-2 select-none [&::-webkit-details-marker]:hidden">
+                <span aria-hidden className="text-xs text-zinc-500 transition-transform group-open:rotate-90">▶</span>
+                <h2 className="text-base font-semibold">
+                  {PAY_MODELS[model].label} <span className="font-normal text-zinc-500">({list.length})</span>
+                </h2>
+              </summary>
+              <div className="mt-3 space-y-3">
               {list.map(({ driver, sheets }) => (
                 <div key={driver.id} className="rounded-2xl bg-white p-4 shadow">
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
@@ -231,7 +235,8 @@ export default async function PayrollPage({
                   )}
                 </div>
               ))}
-            </section>
+              </div>
+            </details>
           );
         })}
         {cards.length === 0 && (
