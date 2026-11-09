@@ -45,6 +45,8 @@ Deploy: import the repo in Vercel, set the 2 env vars, Deploy. No other config n
 - `/job-orders` — admin project orders (one per customer), printed as "Order" on tickets.
 - `/payroll` — **driver payroll** (role `payroll`, also admin): weekly pay sheets per driver from the Excel "PAYROLL MODELOS". Search by driver / pay date / day worked / who prepared it; `/payroll/new` (pick driver → template for Flat bed / Mixer / Aggregate fills in, live total; truck # per load with "Apply to all loads"); `/payroll/[id]` print, PDF, WhatsApp / email / share, copy for next week, void, change history; `/payroll/drivers` driver registry. Payroll users never see tickets; the operator never sees payroll.
 
+- `/ctal` — **CTAL, admin only**: everything about the contract carriers in one place (replaces the Google Sheet "CTAL CARRIER REGIST" and the weekly Excel "CTAL <week>.xlsx"). See "CTAL rules" below.
+
 - `/leaderboard` — **public, no login** (link for drivers): aggregate drivers ranked by loads hauled (then tons), monthly board that starts over on the 1st + yearly totals with loads per month. Data from `public_driver_production()` (migration 010), which exposes only first name + last initial, loads and tons; pay sheets stay private. Not indexed by search engines.
 
 ### Payroll rules (migration 008)
@@ -55,6 +57,22 @@ Deploy: import the repo in Vercel, set the 2 env vars, Deploy. No other config n
 - Every sheet stores who created it and who last edited it; `pay_sheet_events` keeps the full history (row-level: "Load 5: revenue $250 → $260").
 - Two payroll users editing the same sheet: the second save is refused with a "reload" message (no silent overwrite). A second sheet for the same driver + pay date asks for confirmation.
 - Sheets are voided, not deleted (DELETE is admin-only).
+
+### CTAL rules (migration 012)
+
+Routes: `/ctal` (search + current week + insurance to follow up), `/ctal/carriers` (registry, `/new`, `/[id]` with documents, `/import` to paste the Google Sheet), `/ctal/customers` (rules of each job), `/ctal/weeks` and `/ctal/weeks/[id]` (Log) with `/statements`, `/billing`, `/profit`.
+
+- A week runs Sunday to Saturday and is paid the Friday after (`week_start + 12`, editable). Every week is kept.
+- Log row: `carrier amount = qty × carrier rate` and `broker amount = qty × broker rate` for **TON / HR**; for **YDS / LOAD** the rate counts once (`rate × 1`).
+- Fee, always negative, one or the other: **quick pay** `-(carrier amount × 3.5%)`, or **broker fee** `-(carrier amount × 8%)` for the customers set that way. Carriers with pay term `28` start with 0% quick pay.
+- **FSC $**: nothing, a % of the carrier amount (changes week to week), or a fixed amount per load.
+- Statement (per carrier) = carrier amount + broker fee + quick pay fee + FSC. Billing (ASG / Ready Mix / Excavation, set on the customer) = broker amount + FSC. Broker profit = |broker − carrier| + fees, plus FSC.
+- Picking a customer fills the row from `ctal_customers` (unit, rates, fee, FSC); every row stays editable and keeps its own values, so editing a customer never rewrites past weeks.
+- Amounts are computed and frozen by the `compute_ctal_load` trigger; `lib/ctal/compute.ts` mirrors it for the live totals. The log saves by itself.
+- Carrier documents (insurance, contract, CDL… PDF or photos, 20 MB each) live in the private Storage bucket `ctal-docs`; they are opened through short-lived signed links. Tickets are **not** stored: only a link to the owner's own server (per carrier, and per statement).
+- Statements: print, PDF, or email through the `send-carrier-statement` Edge Function (same Gmail secrets as `send-pay-sheet`; without them the app downloads the PDF and opens the mail app). Deploy it with `supabase functions deploy send-carrier-statement`.
+- All CTAL tables and the bucket are admin-only by RLS; operator and payroll users are redirected to their own home.
+- The name printed on the PDFs is in `lib/ctal/config.ts`.
 
 Local development (Supabase in Docker, test users, printing checklist): see [LOCAL-DEV.md](LOCAL-DEV.md).
 

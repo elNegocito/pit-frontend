@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# client data used to check the app against their spreadsheets (the repo is public)
+/supabase/dev/private/
