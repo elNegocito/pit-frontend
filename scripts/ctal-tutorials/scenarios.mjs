@@ -15,6 +15,17 @@ export const SCENARIOS = [
     hrefLabel: "Open the overview",
     start: "/ctal",
     steps: ["This week at a glance", "Insurance to follow up", "Find a carrier by name, number or owner", "Find a ticket number", "Move between sections"],
+    // Spoken over the intro card, then one line per step.
+    voice: {
+      intro: "Welcome. This is a quick tour of your carrier workspace: what the home screen tells you, and how to find anything in seconds.",
+      steps: [
+        "The overview opens on the current week. You see how many loads are logged, what you owe your carriers, what you will bill, and your profit, with and without fuel surcharge.",
+        "On the right is the insurance list. Carriers whose insurance has expired show in red, and those expiring within thirty days show in amber, so you can call them in time.",
+        "The search box finds a carrier by name, by its number, by owner or by phone. Just start typing and the matches appear.",
+        "It also finds tickets. Type part of a ticket number, pick the result, and you land on that exact row of the weekly log.",
+        "The menu at the top takes you everywhere: weeks, carriers, customers, and these tutorials.",
+      ],
+    },
     async run(a, s) {
       await a.step(s[0]);
       await a.look("h1", 700);
@@ -50,6 +61,17 @@ export const SCENARIOS = [
     hrefLabel: "Open carriers",
     start: "/ctal/carriers",
     steps: ["All your carriers in one list", "Search as you type", "Filter by insurance or pay term", "Add a carrier", "Import the Google Sheet"],
+    // Spoken over the intro card, then one line per step.
+    voice: {
+      intro: "This video covers your carrier list: searching it, filtering it, adding a carrier, and importing your Google Sheet.",
+      steps: [
+        "Every carrier is here with the same columns as your sheet: pay term, contacts, equipment, insurance date, hub city and U.S. D.O.T. number.",
+        "Search works as you type, across every column. Try a city, or a phone number, and the list narrows down right away.",
+        "These filters show who needs attention: insurance expired, expiring soon, or missing documents. You can also list quick pay carriers, or those paid at twenty-eight days.",
+        "To add a carrier, fill in the form. Only the name is required. The pay term matters: quick pay carriers get the three point five percent fee, and twenty-eight day carriers do not. Hub city suggests the cities you already use. Save, and the carrier is ready for its documents.",
+        "To bring in the whole sheet at once, copy the table in Google Sheets, header row included, and paste it here. Check the preview, then import. Carriers you already have are skipped, so nothing is duplicated.",
+      ],
+    },
     async run(a, s) {
       await a.step(s[0]);
       await a.look("tbody tr:nth-child(2) td:nth-child(2)", 700);
@@ -123,6 +145,17 @@ export const SCENARIOS = [
     hrefLabel: "Open carriers",
     start: "/ctal/carriers",
     steps: ["Open the carrier", "Add the insurance and the CDL", "Read a document on screen", "Update the insurance date and the tickets link", "Remove an outdated file"],
+    // Spoken over the intro card, then one line per step.
+    voice: {
+      intro: "Here you will see how to keep each carrier's paperwork: insurance, contract and driver's license, as PDF files or photos.",
+      steps: [
+        "Open a carrier from the list. Its page has the documents at the top, its information below, and its past statements at the bottom.",
+        "Drop the files here, or choose them from your computer. Each file gets a type, guessed from its name, and you can set the date it expires. Then upload.",
+        "Click a document to read it right on the screen, without downloading it. It works for PDF files and for photos.",
+        "Below, update the insurance date and paste the link to this carrier's tickets folder on your own server. After saving, a button at the top opens that folder directly.",
+        "When a file is outdated, delete it. It is removed for good, so only current paperwork stays.",
+      ],
+    },
     async run(a, s, ctx) {
       await a.step(s[0]);
       await a.click('a:has-text("THREE FORKS CARRIERS")');
@@ -166,6 +199,17 @@ export const SCENARIOS = [
     hrefLabel: "Open customers",
     start: "/ctal/customers",
     steps: ["Every job has its own rules", "Quick pay or broker fee", "FSC as a percentage or a fixed amount", "Add a customer", "Change a rate"],
+    // Spoken over the intro card, then one line per step.
+    voice: {
+      intro: "This video explains customers. Each customer holds the rules of its job, and the log uses them to fill in every load for you.",
+      steps: [
+        "For each customer you set the unit it is paid by, tons, yards, loads or hours, and the broker rate and carrier rate.",
+        "Then the fee taken from the carrier. Most jobs use the quick pay fee of three point five percent. Others, like this one, use a broker fee of eight percent instead.",
+        "Fuel surcharge can be off, a fixed amount per load, or a percentage of the carrier amount. And Billed by decides whether the job goes on the A.S.G., Ready Mix or Excavation sheet.",
+        "To add a customer, type its name, the rates, and choose its rules. Here, fuel surcharge is ten percent.",
+        "You can change a rate at any time. Weeks already logged keep their own numbers, so past statements never change.",
+      ],
+    },
     async run(a, s) {
       const row = (name) => a.page.locator("form").filter({ has: a.page.locator(`input[name="name"][value="${name}"]`) });
       await a.step(s[0]);
@@ -221,6 +265,20 @@ export const SCENARIOS = [
       "Totals for one carrier",
       "It saves by itself",
     ],
+    // Spoken over the intro card, then one line per step.
+    voice: {
+      intro: "This is the heart of the work: the weekly log, where you enter the invoices and tickets your carriers send you.",
+      steps: [
+        "A week runs from Sunday to Saturday and is paid the following Friday. Pick any day of that week and start it.",
+        "Type a few letters of the carrier and pick it from the suggestions. Its truck and driver fill in by themselves. Do the same with the customer, and the unit, rates, fee and fuel surcharge appear. You only type the ticket and the tons.",
+        "Press Enter, and the next load starts with the same date, carrier, truck, driver and customer. Just keep typing tickets and tons.",
+        "For a different job, change the carrier and the customer. This customer uses a broker fee of eight percent and a fixed fuel surcharge, and this carrier is paid at twenty-eight days. The row adjusts on its own.",
+        "If you type a ticket that is already in the week, both rows turn amber, so you never pay a ticket twice.",
+        "Deleted a row by mistake? Click Undo and it comes right back.",
+        "Click a carrier to see only its loads. The bar at the bottom shows its totals, including what you will pay it.",
+        "There is no save button. Everything is saved as you type.",
+      ],
+    },
     async run(a, s) {
       await a.step(s[0]);
       await a.look('input[name="day"]', 900);
@@ -303,6 +361,19 @@ export const SCENARIOS = [
     hrefLabel: "Open weeks",
     start: "/ctal/weeks",
     steps: ["Open the week's statements", "Find a carrier", "What the carrier is paid", "The PDF", "Link to the tickets on your server", "Email one statement", "Email all the others"],
+    // Spoken over the intro card, then one line per step.
+    voice: {
+      intro: "Now the statements: what each carrier is paid for the week, ready to print, download or email.",
+      steps: [
+        "Open the week and go to Statements. Each carrier that hauled that week has its own statement, with the total next to its name.",
+        "Find a carrier by typing part of its name, and select it.",
+        "The statement lists every load. At the bottom, the subtotal, minus the broker fee or quick pay fee, plus fuel surcharge, gives the total to pay.",
+        "Print it, or download it as a PDF. This is the document your carrier receives.",
+        "You can keep a link to that week's tickets on your own server. The tickets are not uploaded here, only the link is saved.",
+        "Email statement sends the PDF to the address on the carrier's record. The list then shows when it was sent.",
+        "Or send them all at once. Carriers without an email address are skipped, and the ones already sent are not sent again.",
+      ],
+    },
     async run(a, s, ctx) {
       await a.step(s[0]);
       await a.click(a.page.locator("table tbody tr").last().locator("a"));
@@ -354,6 +425,18 @@ export const SCENARIOS = [
     hrefLabel: "Open weeks",
     start: "/ctal/weeks",
     steps: ["Three billing sheets", "Subtotal, FSC and total", "Download a sheet", "The Billings export", "Broker profit", "From the summary to a statement"],
+    // Spoken over the intro card, then one line per step.
+    voice: {
+      intro: "Last, billing and profit: what you bill each company for the week, and how the week turned out.",
+      steps: [
+        "The Billing tab splits the week's loads into three sheets: A.S.G., Ready Mix and Excavation, according to each customer.",
+        "Each sheet ends with its subtotal, the fuel surcharge, and the total to bill.",
+        "Download any sheet as a PDF, or as a file you can open in Excel.",
+        "The Billings button exports the whole log without the amounts, just like the Billings sheet in your workbook.",
+        "Broker profit sums it up by carrier: the difference between what you bill and what you pay, plus the fees you kept. The total is shown with and without fuel surcharge.",
+        "Click any carrier to jump straight to its statement.",
+      ],
+    },
     async run(a, s, ctx) {
       await a.step(s[0]);
       await a.click(a.page.locator("table tbody tr").last().locator("a"));
