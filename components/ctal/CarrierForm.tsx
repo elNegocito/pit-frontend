@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { startTransition, useActionState, useState } from "react";
 import { saveCarrier } from "@/lib/ctal/actions";
 import type { Carrier } from "@/lib/ctal/types";
 import { btnPrimary, input, label } from "@/lib/ctal/ui";
@@ -17,7 +17,16 @@ export function CarrierForm({ carrier, cities, nextNumber }: { carrier?: Carrier
   const f = (name: keyof Carrier) => ({ name, defaultValue: (carrier?.[name] as string | null) ?? "", className: `${input} mt-1` });
 
   return (
-    <form action={action} className="space-y-5" onChange={() => setSavedAt(0)}>
+    <form
+      // Submitted by hand: a form sent through `action` is cleared afterwards, which would wipe what was typed when the save is refused.
+      onSubmit={(e) => {
+        e.preventDefault();
+        const data = new FormData(e.currentTarget);
+        startTransition(() => action(data));
+      }}
+      className="space-y-5"
+      onChange={() => setSavedAt(0)}
+    >
       {carrier && <input type="hidden" name="id" value={carrier.id} />}
       <div className="grid gap-4 sm:grid-cols-6">
         <label className={`${label} sm:col-span-1`}>

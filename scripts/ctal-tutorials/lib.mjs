@@ -193,6 +193,19 @@ export function actor(page, marks, clock) {
       await page.keyboard.press("Control+A");
       await a.type(text, opts);
     },
+    /** A date field: click its month part, then type the digits (MMDDYYYY). */
+    async date(target, digits) {
+      const l = loc(target);
+      await l.scrollIntoViewIfNeeded();
+      const b = await l.boundingBox();
+      await moveTo(b.x + 22, b.y + b.height / 2);
+      await sleep(200);
+      await page.mouse.down();
+      await sleep(70);
+      await page.mouse.up();
+      await sleep(300);
+      await a.type(digits);
+    },
     /** A native <select>: its list is drawn by the system, outside the recording. */
     async choose(target, value) {
       await point(target);

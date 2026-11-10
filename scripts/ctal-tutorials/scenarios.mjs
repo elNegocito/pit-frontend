@@ -78,8 +78,7 @@ export const SCENARIOS = [
       await a.fill('input[name="dispatch_contact"]', "Carla (555) 010-1020", { fast: true });
       await a.fill('input[name="owner"]', "Carla (555) 010-1020", { fast: true });
       await a.fill('input[name="equipment"]', "Carla 88 Round Bottom", { fast: true });
-      await a.click('input[name="ins_exp"]', { dx: 0.15 });
-      await a.type("06302027");
+      await a.date('input[name="ins_exp"]', "06302027");
       await a.fill('input[name="usdot"]', "3101088", { fast: true });
       await a.click('input[name="hub_city"]');
       await a.type("Al");
@@ -134,8 +133,7 @@ export const SCENARIOS = [
       await a.page.setInputFiles('#documents input[type="file"]', [ctx.files.insurance, ctx.files.cdl]);
       await a.sleep(1300);
       const expires = a.page.locator('#documents input[type="date"]').first();
-      await a.click(expires, { dx: 0.2 });
-      await a.type("11102027");
+      await a.date(expires, "11102027");
       await a.sleep(500);
       await a.click('button:has-text("Upload 2 files")');
       await a.page.locator("#documents ul li").nth(1).waitFor();
@@ -148,8 +146,7 @@ export const SCENARIOS = [
       await a.sleep(2600);
       await a.click('button:has-text("Close")');
       await a.step(s[3]);
-      await a.click('input[name="ins_exp"]', { dx: 0.15 });
-      await a.type("11102027");
+      await a.date('input[name="ins_exp"]', "11102027");
       await a.fill('input[name="tickets_url"]', "https://tickets.example.com/three-forks", { fast: true });
       await a.click('button:has-text("Save changes")');
       await a.sleep(1500);

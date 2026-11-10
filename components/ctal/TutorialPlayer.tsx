@@ -100,9 +100,9 @@ export function TutorialPlayer({ tutorials, initial }: { tutorials: Tutorial[]; 
           <h3 id="steps-h" className="text-sm font-semibold">
             In this video
           </h3>
-          <ol className="mt-2 grid gap-x-6 sm:grid-cols-2">
+          <ol className="mt-2 gap-x-6 sm:columns-2">
             {current.chapters.map((c) => (
-              <li key={c.at}>
+              <li key={c.at} className="break-inside-avoid">
                 <button
                   type="button"
                   onClick={() => seek(c.at)}
