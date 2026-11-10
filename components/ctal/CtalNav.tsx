@@ -9,6 +9,7 @@ const TABS = [
   { href: "/ctal/weeks", label: "Weeks" },
   { href: "/ctal/carriers", label: "Carriers" },
   { href: "/ctal/customers", label: "Customers" },
+  { href: "/ctal/help", label: "Tutorials" },
 ];
 
 export function CtalNav() {
