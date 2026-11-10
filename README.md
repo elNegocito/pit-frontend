@@ -73,7 +73,7 @@ Routes: `/ctal` (search + current week + insurance to follow up), `/ctal/carrier
 - Statements: print, PDF, or email through the `send-carrier-statement` Edge Function (same Gmail secrets as `send-pay-sheet`; without them the app downloads the PDF and opens the mail app). Deploy it with `supabase functions deploy send-carrier-statement`.
 - All CTAL tables and the bucket are admin-only by RLS; operator and payroll users are redirected to their own home.
 - The name printed on the PDFs is in `lib/ctal/config.ts`.
-- `/ctal/help` has the tutorial videos (one per part of CTAL, no voice). They are recorded on the real app by `scripts/ctal-tutorials` with made-up data; see its README to record them again after a screen changes.
+- `/ctal/help` has the tutorial videos (one per part of CTAL, narrated in English, with captions). They are recorded on the real app by `scripts/ctal-tutorials` with made-up data; see its README to record them again after a screen changes.
 
 Local development (Supabase in Docker, test users, printing checklist): see [LOCAL-DEV.md](LOCAL-DEV.md).
 

@@ -6,6 +6,7 @@
 // Needs the app running against a LOCAL Supabase loaded with
 // supabase/dev/ctal-tutorial-data.sql (see README.md in this folder).
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
@@ -22,6 +23,31 @@ const MANIFEST = resolve(root, "lib/ctal/tutorials.json");
 const DB = process.env.TUT_DB_CONTAINER ?? "supabase_db_pit-frontend";
 // Playwright is not a dependency of this app: borrow it from wherever it is installed.
 const { chromium } = createRequire(process.env.TUT_PLAYWRIGHT_FROM ?? resolve(root, "../manual") + "/")("playwright");
+
+// Narration. Each line is synthesized once and kept in ./voice (committed), so
+// recording a video again only speaks the lines whose text changed.
+// Voice: Kokoro "am_michael" (American, male), generated on this machine by the
+// HyperFrames CLI: free, no account.
+const VOICE_DIR = resolve(here, "voice");
+const VOICE_ID = process.env.TUT_VOICE_ID ?? "am_michael";
+const VOICE_ON = process.env.TUT_VOICE !== "off";
+const seconds = (file) => Number(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", file]).toString());
+
+function speak(text) {
+  mkdirSync(VOICE_DIR, { recursive: true });
+  const file = `${VOICE_DIR}/${createHash("sha1").update(`${VOICE_ID}|${text}`).digest("hex").slice(0, 16)}.mp3`;
+  if (!existsSync(file)) {
+    const wav = `${TMP}/line.wav`;
+    execFileSync("npx", ["-y", "hyperframes", "tts", text, "-o", wav, "--voice", VOICE_ID], { stdio: ["ignore", "ignore", "inherit"] });
+    // Trim the silence around the line, then keep it small: speech needs no more than this.
+    execFileSync("ffmpeg", [
+      "-y", "-loglevel", "error", "-i", wav,
+      "-af", "silenceremove=start_periods=1:start_threshold=-50dB,areverse,silenceremove=start_periods=1:start_threshold=-50dB,areverse",
+      "-ac", "1", "-c:a", "libmp3lame", "-b:a", "64k", file,
+    ]);
+  }
+  return { file, seconds: seconds(file) };
+}
 
 const only = process.argv.slice(2);
 const todo = SCENARIOS.filter((s) => only.length === 0 || only.includes(s.slug));
@@ -86,6 +112,10 @@ for (const sc of todo) {
   const dir = `${TMP}/${sc.slug}`;
   rmSync(dir, { recursive: true, force: true });
 
+  const intro = VOICE_ON ? speak(sc.voice.intro) : null;
+  const lines = VOICE_ON ? sc.voice.steps.map(speak) : [];
+  if (VOICE_ON) console.log(`  narration ${(intro.seconds + lines.reduce((t, l) => t + l.seconds, 0)).toFixed(1)} s`);
+
   const ctx = await browser.newContext({ viewport: VIEW, storageState, acceptDownloads: true, recordVideo: { dir, size: VIEW } });
   await ctx.addInitScript(overlayScript(introCard(index, SCENARIOS.length, sc.title, sc.steps)));
   // Gmail is not connected on the recording machine: answer as the email function does when it sends.
@@ -102,14 +132,16 @@ for (const sc of todo) {
   page.on("dialog", (d) => d.accept());
   const marks = [];
   let trim = 0;
-  const a = actor(page, marks, () => (Date.now() - born) / 1000 - trim);
+  const a = actor(page, marks, () => (Date.now() - born) / 1000 - trim, lines.map((l) => l.seconds));
 
   await page.goto(BASE + sc.start, { waitUntil: "domcontentloaded" });
   await page.waitForSelector("#tut-card");
   // Everything before the intro card is blank loading time: cut it.
   trim = (Date.now() - born) / 1000 + 0.15;
   await page.waitForLoadState("networkidle").catch(() => {});
-  await sleep(3200 + sc.steps.length * 420);
+  // The intro card stays long enough to be read, and until its narration ends.
+  const INTRO_VOICE_AT = 0.7;
+  await sleep(Math.max(3200 + sc.steps.length * 420, intro ? (INTRO_VOICE_AT + intro.seconds + 0.5) * 1000 : 0));
   await page.evaluate(() => window.__tut.hideCard());
   await sleep(500);
 
@@ -120,6 +152,7 @@ for (const sc of todo) {
     await ctx.close();
     throw e;
   }
+  await a.finishLine();
   await sleep(600);
   await page.evaluate(() => window.__tut.caption(""));
   await page.evaluate((h) => window.__tut.card(h), outroCard(next));
@@ -129,11 +162,21 @@ for (const sc of todo) {
   const raw = await page.video().path();
 
   // H.264 at a constant quality: screen recordings are mostly still, so this stays small.
+  // The narration lines are laid at the second their step starts, then levelled as one track.
   const mp4 = `${OUT}/${sc.slug}.mp4`;
+  const clips = VOICE_ON ? [{ ...intro, at: INTRO_VOICE_AT }, ...lines.map((l, i) => ({ ...l, at: marks[i].voiceAt }))] : [];
+  const video = ["-vf", "fps=25,format=yuv420p", "-c:v", "libx264", "-preset", "veryslow", "-crf", process.env.TUT_CRF ?? "27", "-profile:v", "high", "-g", "75"];
+  const audio = VOICE_ON
+    ? [
+        "-filter_complex",
+        clips.map((c, i) => `[${i + 1}:a]adelay=${Math.round(c.at * 1000)}:all=1[a${i}]`).join(";") +
+          `;${clips.map((_, i) => `[a${i}]`).join("")}amix=inputs=${clips.length}:normalize=0,loudnorm=I=-16:TP=-1.5:LRA=11,aresample=44100,apad[voice]`,
+        "-map", "0:v", "-map", "[voice]", "-c:a", "aac", "-b:a", "64k", "-ac", "1",
+      ]
+    : ["-an"];
   execFileSync("ffmpeg", [
-    "-y", "-loglevel", "error", "-ss", trim.toFixed(2), "-i", raw, "-t", length.toFixed(2), "-an",
-    "-vf", "fps=25,format=yuv420p", "-c:v", "libx264", "-preset", "veryslow", "-crf", process.env.TUT_CRF ?? "27",
-    "-profile:v", "high", "-g", "75", "-movflags", "+faststart", mp4,
+    "-y", "-loglevel", "error", "-ss", trim.toFixed(2), "-i", raw, ...clips.flatMap((c) => ["-i", c.file]),
+    ...video, ...audio, "-t", length.toFixed(2), "-movflags", "+faststart", mp4,
   ]);
   execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-ss", "2.6", "-i", mp4, "-frames:v", "1", "-vf", "scale=1280:-2", "-q:v", "5", `${OUT}/${sc.slug}.jpg`]);
   const duration = Number(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", mp4]).toString());

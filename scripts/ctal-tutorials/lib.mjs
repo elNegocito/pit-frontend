@@ -1,6 +1,6 @@
 // Recording helpers for the CTAL tutorial videos: a visible cursor that moves
-// like a hand does, typing at a human pace, intro / closing cards and the
-// caption shown while each step plays. See README.md in this folder.
+// like a hand does, typing at a human pace, intro / closing cards, the caption
+// shown while each step plays, and pacing each step to its narration. See README.md in this folder.
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
@@ -116,9 +116,11 @@ export function pdfCard(pdfPath, captionText) {
 }
 
 /** Everything a scenario needs to act on the page the way a person would. */
-export function actor(page, marks, clock) {
+export function actor(page, marks, clock, lineSeconds = []) {
   let mx = 800;
   let my = 470;
+  // When the narration of the current step ends (video seconds).
+  let lineEnd = 0;
 
   async function moveTo(x, y) {
     const dist = Math.hypot(x - mx, y - my);
@@ -159,9 +161,18 @@ export function actor(page, marks, clock) {
     sleep,
     /** A new step: shown as the caption and listed as a chapter of the video. */
     async step(label, pause = 900) {
-      marks.push({ at: clock(), label });
+      await a.finishLine();
+      const at = clock();
+      // The voice starts a beat after the caption changes.
+      marks.push({ at, label, voiceAt: at + 0.35 });
+      lineEnd = at + 0.35 + (lineSeconds[marks.length - 1] ?? 0);
       await page.evaluate((t) => window.__tut.caption(t), label);
       await sleep(pause);
+    },
+    /** Hold the screen until the narration of the current step is over. */
+    async finishLine() {
+      const wait = lineEnd + 0.45 - clock();
+      if (wait > 0) await sleep(wait * 1000);
     },
     /** Rest the cursor on something to draw the eye to it. */
     async look(target, ms = 900, opts) {

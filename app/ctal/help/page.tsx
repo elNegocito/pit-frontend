@@ -12,7 +12,7 @@ export default async function CtalHelpPage({ searchParams }: { searchParams: Pro
       <div className="mb-5">
         <h1 className="text-2xl font-semibold tracking-tight">Tutorials</h1>
         <p className="max-w-2xl text-sm text-zinc-600">
-          Short videos of every part of CTAL, recorded on these same screens with sample data. No sound needed.
+          Short videos of every part of CTAL, recorded on these same screens with sample data. Each one is narrated in English and shows a caption for every step, so it also works with the sound off.
           {TUTORIALS.length > 0 && ` ${TUTORIALS.length} videos, ${clock(total)} minutes in all.`}
         </p>
       </div>
