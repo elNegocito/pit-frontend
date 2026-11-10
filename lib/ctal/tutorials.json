@@ -1,0 +1,236 @@
+[
+  {
+    "slug": "overview",
+    "title": "A tour of CTAL",
+    "summary": "What the overview shows, how to find any carrier, ticket or week from one search box, and how to move between sections.",
+    "href": "/ctal",
+    "hrefLabel": "Open the overview",
+    "duration": 48,
+    "chapters": [
+      {
+        "at": 8.3,
+        "label": "This week at a glance"
+      },
+      {
+        "at": 15.1,
+        "label": "Insurance to follow up"
+      },
+      {
+        "at": 20.7,
+        "label": "Find a carrier by name, number or owner"
+      },
+      {
+        "at": 27.3,
+        "label": "Find a ticket number"
+      },
+      {
+        "at": 33.2,
+        "label": "Move between sections"
+      }
+    ]
+  },
+  {
+    "slug": "carriers",
+    "title": "Carriers",
+    "summary": "The carrier list, instant search and filters, adding a carrier by hand, and bringing the whole Google Sheet in at once.",
+    "href": "/ctal/carriers",
+    "hrefLabel": "Open carriers",
+    "duration": 84,
+    "chapters": [
+      {
+        "at": 8.2,
+        "label": "All your carriers in one list"
+      },
+      {
+        "at": 13.4,
+        "label": "Search as you type"
+      },
+      {
+        "at": 22.1,
+        "label": "Filter by insurance or pay term"
+      },
+      {
+        "at": 30.9,
+        "label": "Add a carrier"
+      },
+      {
+        "at": 59.3,
+        "label": "Import the Google Sheet"
+      }
+    ]
+  },
+  {
+    "slug": "documents",
+    "title": "Carrier documents",
+    "summary": "Keeping each carrier's insurance, contract and CDL as PDF or photos, opening them on screen, and saving the link to its tickets folder.",
+    "href": "/ctal/carriers",
+    "hrefLabel": "Open carriers",
+    "duration": 58,
+    "chapters": [
+      {
+        "at": 8.1,
+        "label": "Open the carrier"
+      },
+      {
+        "at": 11.5,
+        "label": "Add the insurance and the CDL"
+      },
+      {
+        "at": 22.1,
+        "label": "Read a document on screen"
+      },
+      {
+        "at": 36.2,
+        "label": "Update the insurance date and the tickets link"
+      },
+      {
+        "at": 50.8,
+        "label": "Remove an outdated file"
+      }
+    ]
+  },
+  {
+    "slug": "customers",
+    "title": "Customers and their rules",
+    "summary": "Each customer keeps the rules of its job: unit, rates, quick pay or broker fee, FSC, and the company that bills it.",
+    "href": "/ctal/customers",
+    "hrefLabel": "Open customers",
+    "duration": 57,
+    "chapters": [
+      {
+        "at": 7.5,
+        "label": "Every job has its own rules"
+      },
+      {
+        "at": 14.3,
+        "label": "Quick pay or broker fee"
+      },
+      {
+        "at": 21.3,
+        "label": "FSC as a percentage or a fixed amount"
+      },
+      {
+        "at": 29.4,
+        "label": "Add a customer"
+      },
+      {
+        "at": 45.8,
+        "label": "Change a rate"
+      }
+    ]
+  },
+  {
+    "slug": "weekly-log",
+    "title": "The weekly log",
+    "summary": "Starting a week and typing the invoices in: suggestions as you type, rates filled in by themselves, Enter for the next load, repeated tickets flagged, and totals that update live.",
+    "href": "/ctal/weeks",
+    "hrefLabel": "Open weeks",
+    "duration": 88,
+    "chapters": [
+      {
+        "at": 8.8,
+        "label": "Start the week"
+      },
+      {
+        "at": 13.8,
+        "label": "Type the first load"
+      },
+      {
+        "at": 30.7,
+        "label": "Enter starts the next load"
+      },
+      {
+        "at": 37.8,
+        "label": "Another carrier and another job"
+      },
+      {
+        "at": 57.4,
+        "label": "A repeated ticket is flagged"
+      },
+      {
+        "at": 64.2,
+        "label": "Delete a row and undo it"
+      },
+      {
+        "at": 71.7,
+        "label": "Totals for one carrier"
+      },
+      {
+        "at": 80.9,
+        "label": "It saves by itself"
+      }
+    ]
+  },
+  {
+    "slug": "statements",
+    "title": "Statements",
+    "summary": "What each carrier is paid for the week: check it, print it or download the PDF, keep the link to its tickets, and email it to one carrier or to all of them.",
+    "href": "/ctal/weeks",
+    "hrefLabel": "Open weeks",
+    "duration": 72,
+    "chapters": [
+      {
+        "at": 8.2,
+        "label": "Open the week's statements"
+      },
+      {
+        "at": 13.8,
+        "label": "Find a carrier"
+      },
+      {
+        "at": 19.2,
+        "label": "What the carrier is paid"
+      },
+      {
+        "at": 27.7,
+        "label": "The PDF"
+      },
+      {
+        "at": 36.9,
+        "label": "Link to the tickets on your server"
+      },
+      {
+        "at": 46.6,
+        "label": "Email one statement"
+      },
+      {
+        "at": 54.1,
+        "label": "Email all the others"
+      }
+    ]
+  },
+  {
+    "slug": "billing-profit",
+    "title": "Billing and broker profit",
+    "summary": "The week's billing sheets for ASG, Ready Mix and Excavation with their PDF and Excel downloads, the Billings export, and the profit summary by carrier.",
+    "href": "/ctal/weeks",
+    "hrefLabel": "Open weeks",
+    "duration": 62,
+    "chapters": [
+      {
+        "at": 7.8,
+        "label": "Three billing sheets"
+      },
+      {
+        "at": 14.8,
+        "label": "Subtotal, FSC and total"
+      },
+      {
+        "at": 28.4,
+        "label": "Download a sheet"
+      },
+      {
+        "at": 37.8,
+        "label": "The Billings export"
+      },
+      {
+        "at": 41.9,
+        "label": "Broker profit"
+      },
+      {
+        "at": 53.7,
+        "label": "From the summary to a statement"
+      }
+    ]
+  }
+]

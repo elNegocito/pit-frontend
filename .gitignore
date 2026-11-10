@@ -43,3 +43,6 @@ next-env.d.ts
 
 # client data used to check the app against their spreadsheets (the repo is public)
 /supabase/dev/private/
+
+# raw tutorial recordings (scripts/ctal-tutorials)
+/.tutorials-tmp/
