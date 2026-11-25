@@ -1,0 +1,828 @@
+<!DOCTYPE html><html lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>ASG Operations — PIT #2 Material Entry</title>
+<!-- Tailwind CSS CDN with forms and container queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- FontAwesome Icons for industrial-cute scale house UI -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<!-- Google Fonts: Quicksand & Nunito for friendly, legible scale-ticketing typography -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&amp;family=Quicksand:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<!-- BEGIN: Custom Tailwind Configuration -->
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            kitty: {
+              hot: '#ff1493',
+              deep: '#db2777',
+              berry: '#9d174d',
+              accent: '#ff4081',
+              light: '#fdf2f8',
+              surface: '#fff5f8',
+              border: '#fbcfe8',
+              borderDark: '#f472b6',
+              highlight: '#f43f5e'
+            }
+          },
+          fontFamily: {
+            sans: ['Nunito', 'Quicksand', 'sans-serif'],
+            cute: ['Quicksand', 'sans-serif']
+          },
+          boxShadow: {
+            'cute': '0 8px 24px -4px rgba(244, 63, 94, 0.15), 0 4px 8px -2px rgba(244, 63, 94, 0.08)',
+            'cute-sm': '0 4px 12px rgba(244, 63, 94, 0.12)',
+            'cute-inset': 'inset 0 2px 4px rgba(219, 39, 119, 0.12)'
+          }
+        }
+      }
+    }
+  </script>
+<!-- END: Custom Tailwind Configuration -->
+<!-- BEGIN: Custom Visual Accents -->
+<style data-purpose="theme-styles">
+    /* Subtle decorative sparkles & bow highlights */
+    .bow-badge {
+      background: linear-gradient(135deg, #ff2d75 0%, #ff69b4 100%);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #fdf2f8;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #f472b6;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #db2777;
+    }
+  </style>
+<!-- END: Custom Visual Accents -->
+</head>
+<body class="bg-gradient-to-br from-[#ffe4ec] via-[#fff1f5] to-[#fce7f3] min-h-screen text-slate-800 font-sans antialiased selection:bg-pink-300 selection:text-pink-900">
+<!-- BEGIN: Application Shell -->
+<div class="flex flex-col min-h-screen">
+<!-- BEGIN: Top Navigation Header -->
+<header class="bg-white/90 backdrop-blur-md border-b-2 border-pink-200 sticky top-0 z-40 shadow-sm" data-purpose="main-header">
+<!-- Hot pink upper announcement banner -->
+<div class="bg-gradient-to-r from-[#ff1493] via-[#ff4081] to-[#f43f5e] text-white px-4 py-1.5 flex items-center justify-between text-xs font-bold tracking-wider uppercase">
+<div class="flex items-center gap-2">
+<span class="inline-block animate-pulse">🎀</span>
+<span class="">ASG OPERATIONS — PIT #2 WEIGH SCALE SYSTEM</span>
+
+</div>
+<div class="flex items-center gap-4 text-[11px]"><span class="flex items-center gap-1.5 font-semibold text-pink-100 border-r border-pink-400/40 pr-3"><i class="fa-solid fa-calendar-day text-pink-200"></i> Sep 22, 2026</span>
+<span class="flex items-center gap-1.5 font-semibold text-pink-100">
+<i class="fa-solid fa-clock text-pink-200"></i> Local Time: Chicago (CDT)
+          </span>
+
+</div>
+</div>
+<!-- Main Branding & Operator Toolbar -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
+<!-- Brand Title & Pit Badge -->
+<div class="flex items-center space-x-3.5">
+<div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-400 text-white flex items-center justify-center text-xl shadow-cute-sm ring-2 ring-pink-200">
+<i class="fa-solid fa-truck-monster"></i>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h1 class="text-xl sm:text-2xl font-black tracking-tight text-pink-700 font-cute flex items-center gap-1.5">
+                ASG Operations <span class="text-slate-400 font-normal">—</span> <span class="text-pink-600">PIT #2</span>
+</h1>
+<span class="bg-pink-100 border border-pink-300 text-pink-700 text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wide flex items-center gap-1">
+<span class="text-pink-500 text-[10px]">●</span> Active Quarry
+              </span>
+</div>
+<p class="text-xs text-pink-800/70 font-semibold">Material Entry Form &amp; Scale Ticket Management</p>
+</div>
+</div>
+<!-- Quick Navigation Pills -->
+
+<!-- Operator Profile & Actions -->
+<div class="flex items-center space-x-3">
+<div class="flex items-center gap-2.5 bg-pink-50 border border-pink-200 pl-2 pr-3 py-1 rounded-full shadow-sm">
+<div class="w-7 h-7 rounded-full bg-pink-400 text-white flex items-center justify-center font-bold text-xs ring-2 ring-pink-300">
+<i class="fa-solid fa-heart text-[11px]"></i>
+</div>
+<div class="text-left text-xs leading-tight">
+<span class="block font-black text-pink-900">Operator ASG</span>
+<span class="text-[10px] text-pink-600 font-semibold">Scale Master</span>
+</div>
+</div>
+<!-- Sign Out Button -->
+<button class="bg-white hover:bg-pink-50 border border-pink-200 text-pink-700 hover:text-pink-900 font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-sm flex items-center gap-1.5" title="Sign out of scale terminal" type="button">
+<i class="fa-solid fa-arrow-right-from-bracket"></i>
+<span class="">Sign out</span>
+</button>
+</div>
+</div>
+</header>
+<!-- END: Top Navigation Header -->
+<!-- BEGIN: Main Dashboard Content -->
+<main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full" data-purpose="dashboard-main">
+<!-- Top Mini Alert & Pit Status Bar -->
+
+<!-- Grid: Left Column Form, Right Column Live Tickets -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- BEGIN: Left Column - Material Entry Form Card -->
+<section class="lg:col-span-6 bg-white/95 rounded-3xl border-2 border-pink-200/90 shadow-cute p-5 sm:p-7 relative overflow-hidden" data-purpose="material-entry-form-card">
+<!-- Cute decorative corner ribbon / badge -->
+<div class="absolute -top-1 -right-1">
+<div class="bg-gradient-to-br from-pink-500 to-rose-400 text-white text-[10px] font-black uppercase px-4 py-1 rounded-bl-2xl shadow-sm flex items-center gap-1">
+<span class="">PIT #2</span>
+<span class="">🎀</span>
+</div>
+</div>
+<!-- Form Header -->
+<div class="mb-5 pb-4 border-b border-pink-100 flex items-center justify-between">
+<div>
+<div class="flex items-center gap-2">
+<span class="w-8 h-8 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center text-sm font-black">
+<i class="fa-solid fa-pen-ruler"></i>
+</span>
+<h2 class="text-xl font-extrabold text-pink-900 tracking-tight font-cute">Material Entry Form</h2>
+</div>
+<p class="text-xs text-pink-700/80 mt-0.5">Weigh-scale gross ticketing &amp; automated rate calculation</p>
+</div>
+<!-- Quick reset button -->
+<button class="text-xs text-pink-600 hover:text-pink-800 font-bold bg-pink-50 hover:bg-pink-100 px-2.5 py-1 rounded-lg transition border border-pink-200" id="form-reset-btn" type="button">
+<i class="fa-solid fa-rotate-left mr-1"></i>Reset
+            </button>
+</div>
+<!-- Hello Kitty Excavator Cute Banner Sticker -->
+<div class="mb-5 rounded-2xl overflow-hidden border-2 border-pink-200 bg-pink-50 shadow-inner group">
+<div class="relative bg-gradient-to-r from-pink-100 via-rose-100 to-pink-200 flex items-center justify-center p-1 overflow-hidden">
+<img alt="ASG Pit #2 Hello Kitty excavator themed equipment banner" class="w-full h-auto max-h-36 object-contain rounded-xl transition duration-300 group-hover:scale-[1.02]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJhvtFbFQyPmVrl6ugvKimiRObbFajr0uVYfU_1Eeg-cWpToGwBIejTAe0cSC-rc21-dRgjI9P5EVJLle3W2N0n9XEaJ9nXAnTzYosg81XU7PFTnwptUzEGGPYTmFGbvjWoYqbtsWSYjjWi9vb0BQ_w5tFcsDz5w0QrNPMK7VVdewaEkQzQbx_K102h-JVmgtW34Z31Kgixf9AR16Ywxh9O1tePDucP0LnvAgqqks">
+<div class="absolute bottom-2 left-3 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-md text-[10px] font-extrabold text-pink-700 shadow-sm border border-pink-200">
+                🎀 ASG PIT #2 HEAVY FLEET
+              </div>
+</div>
+</div>
+<!-- Entry Form Elements -->
+<form class="space-y-4" id="material-entry-form" onsubmit="event.preventDefault();">
+<!-- Date Display / Input (Chicago format) -->
+<div data-purpose="form-field-date">
+<label class="block text-xs font-extrabold text-pink-900 mb-1 flex items-center justify-between">
+<span class="">Date &amp; Scale Zone</span>
+<span class="text-[11px] font-normal text-pink-600">Auto-synced</span>
+</label>
+<div class="flex items-center bg-pink-50/80 border border-pink-200 rounded-xl px-3.5 py-2.5 text-slate-800 text-sm font-semibold shadow-inner">
+<i class="fa-regular fa-calendar-check text-pink-500 mr-2.5"></i>
+<span id="display-date" class="">Sep 22, 2026 (Chicago)</span>
+<input name="entry_date" type="hidden" value="2026-09-22">
+<span class="ml-auto text-[11px] bg-white text-pink-700 font-bold px-2 py-0.5 rounded border border-pink-200">09/22/2026</span>
+</div>
+</div>
+<!-- Material Dropdown Selector -->
+<div data-purpose="form-field-material">
+<label class="block text-xs font-black text-pink-900 mb-1 flex items-center justify-between" for="material-select">
+<span class="">Material *</span>
+<span class="text-[11px] text-pink-600 font-bold" id="unit-rate-label">Rate: $8.80 / ton</span>
+</label>
+<div class="relative">
+<select class="w-full bg-white border-2 border-pink-200 hover:border-pink-300 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 rounded-xl px-3.5 py-2.5 text-slate-800 text-sm font-extrabold transition shadow-sm appearance-none" id="material-select">
+<option data-name="CUSHION SAND" selected="" value="8.80">CUSHION SAND — $8.80/ton</option>
+<option data-name="COMMON FILL" value="4.00">COMMON FILL — $4.00/ton</option>
+<option data-name="SELECT FILL" value="12.50">SELECT FILL — $12.50/ton</option>
+<option data-name="CONCRETE SAND" value="18.00">CONCRETE SAND — $18.00/ton</option>
+<option data-name="TOPSOIL SCREENED" value="6.50">TOPSOIL SCREENED — $6.50/ton</option>
+</select>
+<div class="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-pink-500">
+<i class="fa-solid fa-chevron-down text-xs"></i>
+</div>
+</div>
+</div>
+<!-- 3-Column Fast Input Grid: Truck #, Ticket #, Tons -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3" data-purpose="form-row-scale-measurements">
+<!-- Truck # -->
+<div>
+<label class="block text-xs font-black text-pink-900 mb-1" for="truck-input">
+                  Truck # *
+                </label>
+<div class="relative">
+<input class="w-full bg-white border-2 border-pink-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 rounded-xl px-3 py-2.5 text-slate-900 font-extrabold text-sm placeholder:text-slate-300 shadow-sm" id="truck-input" placeholder="9207" required="" type="text" value="9207">
+<span class="absolute right-2.5 top-2.5 text-pink-300 text-xs">
+<i class="fa-solid fa-truck"></i>
+</span>
+</div>
+</div>
+<!-- Ticket # -->
+<div>
+<label class="block text-xs font-black text-pink-900 mb-1" for="ticket-input">
+                  Ticket # *
+                </label>
+<div class="relative">
+<input class="w-full bg-white border-2 border-pink-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 rounded-xl px-3 py-2.5 text-slate-900 font-extrabold text-sm placeholder:text-slate-300 shadow-sm" id="ticket-input" placeholder="20050" required="" type="text" value="20050">
+<span class="absolute right-2.5 top-2.5 text-pink-300 text-xs">
+<i class="fa-solid fa-hashtag"></i>
+</span>
+</div>
+</div>
+<!-- Tons -->
+<div>
+<label class="block text-xs font-black text-pink-900 mb-1 flex items-center justify-between" for="tons-input">
+<span class="">Tons *</span>
+<span class="text-[10px] text-pink-500 font-bold">Net Ton</span>
+</label>
+<div class="relative">
+<input class="w-full bg-white border-2 border-pink-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 rounded-xl px-3 py-2.5 text-slate-900 font-black text-sm placeholder:text-slate-300 shadow-sm" id="tons-input" placeholder="18.00" required="" step="0.01" type="number" value="18.00">
+<span class="absolute right-2.5 top-2.5 text-pink-500 font-bold text-xs">
+                    t
+                  </span>
+</div>
+</div>
+</div>
+<!-- Customer Searchable Field -->
+<div data-purpose="form-field-customer">
+<label class="block text-xs font-black text-pink-900 mb-1 flex items-center justify-between" for="customer-input">
+<span class="">Customer *</span>
+<span class="text-[11px] font-semibold text-pink-600">Quick suggestions active</span>
+</label>
+<div class="relative">
+<input class="w-full bg-white border-2 border-pink-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 rounded-xl pl-9 pr-24 py-2.5 text-slate-900 font-extrabold text-sm placeholder:text-slate-400 shadow-sm" id="customer-input" placeholder="Type to search or create..." required="" type="text" value="GT Services">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-pink-400">
+<i class="fa-solid fa-magnifying-glass text-xs"></i>
+</div>
+<div class="absolute inset-y-0 right-1.5 flex items-center">
+<button class="text-[10px] font-extrabold bg-pink-100 hover:bg-pink-200 text-pink-700 px-2 py-1 rounded-lg border border-pink-300 transition" type="button">
+                    + Quick Add
+                  </button>
+</div>
+</div>
+<!-- Customer quick tag helpers -->
+<div class="flex flex-wrap gap-1.5 mt-2">
+<button class="text-[11px] bg-pink-50 hover:bg-pink-100 text-pink-800 font-bold px-2 py-0.5 rounded-md border border-pink-200 transition" onclick="document.getElementById('customer-input').value='GT Services';" type="button">
+                  GT Services
+                </button>
+<button class="text-[11px] bg-pink-50 hover:bg-pink-100 text-pink-800 font-bold px-2 py-0.5 rounded-md border border-pink-200 transition" onclick="document.getElementById('customer-input').value='TRI-DAL';" type="button">
+                  TRI-DAL
+                </button>
+<button class="text-[11px] bg-pink-50 hover:bg-pink-100 text-pink-800 font-bold px-2 py-0.5 rounded-md border border-pink-200 transition" onclick="document.getElementById('customer-input').value='Rosas Trucking';" type="button">
+                  Rosas Trucking
+                </button>
+<button class="text-[11px] bg-pink-50 hover:bg-pink-100 text-pink-800 font-bold px-2 py-0.5 rounded-md border border-pink-200 transition" onclick="document.getElementById('customer-input').value='Lone Star Haul';" type="button">
+                  Lone Star
+                </button>
+</div>
+</div>
+<!-- Payment & COD Method Rows -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3" data-purpose="form-row-payment-method">
+<!-- Payment Type -->
+<div>
+<label class="block text-xs font-black text-pink-900 mb-1" for="payment-select">
+                  Payment *
+                </label>
+<div class="relative">
+<select class="w-full bg-white border-2 border-pink-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 rounded-xl px-3 py-2 text-slate-800 text-sm font-bold shadow-sm appearance-none" id="payment-select">
+<option selected="" value="COD">COD (cash on delivery)</option>
+<option value="CHARGE">CHARGE (30-Day Terms)</option>
+<option value="PREPAID">PREPAID ACCOUNT</option>
+</select>
+<div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-pink-400">
+<i class="fa-solid fa-chevron-down text-xs"></i>
+</div>
+</div>
+</div>
+<!-- COD Method -->
+<div>
+<label class="block text-xs font-black text-pink-900 mb-1" for="cod-method-select">
+                  COD method *
+                </label>
+<div class="relative">
+<select class="w-full bg-white border-2 border-pink-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-100 rounded-xl px-3 py-2 text-slate-800 text-sm font-bold shadow-sm appearance-none" id="cod-method-select">
+<option value="CASH">CASH</option>
+<option selected="" value="CARD">CARD (Terminal)</option>
+<option value="CHECK">CHECK</option>
+<option value="ZELLE">ZELLE / WIRE</option>
+</select>
+<div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-pink-400">
+<i class="fa-solid fa-chevron-down text-xs"></i>
+</div>
+</div>
+</div>
+</div>
+<!-- Gross Amount Calculation Box (High-Contrast Hero Bar) -->
+<div class="bg-gradient-to-r from-slate-900 via-[#1e1e24] to-pink-950 rounded-2xl p-4 text-white shadow-cute border-2 border-pink-500/30 flex items-center justify-between" data-purpose="calculation-gross-summary">
+<div class="space-y-0.5">
+<span class="text-[11px] font-bold text-pink-300 uppercase tracking-widest flex items-center gap-1.5">
+<i class="fa-solid fa-calculator text-pink-400"></i>
+<span class="">Calculated Billing</span>
+</span>
+<p class="text-sm font-mono text-pink-100 font-medium" id="calculation-breakdown">COD → 18.00 t × $8.80</p>
+</div>
+<div class="text-right">
+<span class="text-[10px] text-pink-200/80 font-bold uppercase tracking-wider block">Gross Amount</span>
+<span class="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight" id="gross-total-display">$158.40</span>
+</div>
+</div>
+<!-- Action Buttons Row (Save Ticket + Clear) -->
+<div class="pt-2 flex items-center gap-3" data-purpose="form-action-buttons">
+<!-- Save Ticket Button -->
+<button class="flex-1 bg-gradient-to-r from-[#ff1493] via-[#ff2d75] to-[#f43f5e] hover:from-[#e00d7f] hover:to-[#e11d48] text-white font-black text-sm sm:text-base py-3.5 px-6 rounded-2xl shadow-cute hover:shadow-lg transition-all duration-200 transform active:scale-[0.99] flex items-center justify-center gap-2.5 border border-pink-300/40" id="save-ticket-btn" type="submit">
+<i class="fa-solid fa-circle-check text-lg animate-bounce"></i>
+<span class="">Save Ticket</span>
+<span class="text-xs font-normal opacity-90">(Enter ↵)</span>
+</button>
+<!-- Clear Form Button -->
+<button class="bg-white hover:bg-pink-50 border-2 border-pink-300 text-pink-700 hover:text-pink-900 font-extrabold text-sm py-3.5 px-5 rounded-2xl transition duration-150 shadow-sm flex items-center justify-center gap-1.5" id="clear-form-btn" type="button">
+<i class="fa-regular fa-trash-can"></i>
+<span class="">Clear</span>
+</button>
+</div>
+<!-- Print Auto-toggle & Receipt Options -->
+<div class="flex items-center justify-between text-xs text-pink-900 pt-1 font-semibold">
+<label class="flex items-center gap-2 cursor-pointer select-none">
+<input checked="" class="w-4 h-4 rounded text-pink-600 focus:ring-pink-400 border-pink-300" type="checkbox">
+<span class="">Auto-print 2 copies of ticket receipt</span>
+</label>
+<span class="text-pink-600 text-[11px] font-bold">
+<i class="fa-solid fa-print mr-1"></i>Epson TM-T88 Ready
+              </span>
+</div>
+</form>
+</section>
+<!-- END: Left Column - Material Entry Form Card -->
+<!-- BEGIN: Right Column - Today's Tickets & Scale Log -->
+<section class="lg:col-span-6 space-y-5" data-purpose="tickets-live-feed-section">
+<!-- Ticket Feed Card -->
+<div class="bg-white/95 rounded-3xl border-2 border-pink-200/90 shadow-cute p-5 sm:p-7">
+<!-- Feed Header -->
+<div class="flex items-center justify-between pb-4 border-b border-pink-100 mb-4">
+<div>
+<div class="flex items-center gap-2">
+<span class="w-8 h-8 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center text-sm font-black">
+<i class="fa-solid fa-ticket"></i>
+</span>
+<h3 class="text-lg sm:text-xl font-extrabold text-pink-950 font-cute flex items-center gap-2">
+<span class="">Today's tickets</span>
+<span class="bg-pink-100 text-pink-700 text-xs px-2.5 py-0.5 rounded-full font-black border border-pink-200" id="ticket-count-badge">(33)</span>
+</h3>
+</div>
+<p class="text-xs text-pink-700/80 mt-0.5">Scale weight manifests logged for September 22, 2026</p>
+</div>
+<!-- Page weight tally badge -->
+<div class="text-right">
+<span class="text-[11px] font-bold text-pink-600 uppercase tracking-wide block">Weight Logged</span>
+<span class="bg-pink-50 border border-pink-200 text-pink-800 text-xs sm:text-sm font-black px-3 py-1 rounded-xl shadow-inner font-mono">
+                  359.00 t this page
+                </span>
+</div>
+</div>
+<!-- Fast Search & Filter Filter Toolbar -->
+<div class="flex items-center gap-2 mb-3">
+<div class="relative flex-grow">
+<input class="w-full bg-pink-50/50 border border-pink-200 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-800 placeholder:text-pink-300 focus:bg-white focus:border-pink-400 focus:ring-2 focus:ring-pink-100" placeholder="Filter by Truck #, Ticket # or Customer..." type="text">
+<i class="fa-solid fa-filter absolute left-2.5 top-2 text-[10px] text-pink-400"></i>
+</div>
+<button class="bg-pink-50 hover:bg-pink-100 border border-pink-200 text-pink-700 text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1">
+<i class="fa-solid fa-file-export"></i>
+<span class="hidden sm:inline">Export</span>
+</button>
+</div>
+<!-- Tickets List (Scrollable Area) -->
+<div class="space-y-2.5 max-h-[500px] overflow-y-auto pr-1.5 custom-scrollbar" data-purpose="tickets-list" id="tickets-container">
+<!-- Ticket Item 1 -->
+<div class="group bg-pink-50/40 hover:bg-pink-50 border border-pink-100 hover:border-pink-300 rounded-2xl p-3.5 transition-all duration-150 flex items-center justify-between gap-3 shadow-sm">
+<div class="space-y-1">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="font-extrabold text-slate-900 text-sm">TRI-DAL</span>
+<span class="text-pink-400">•</span>
+<span class="text-xs font-bold text-pink-600 tracking-wide">CUSHION SAND</span>
+<span class="bg-pink-100 text-pink-800 text-[10px] font-black px-2 py-0.5 rounded-full border border-pink-200">scale #2</span>
+</div>
+<div class="text-xs text-slate-500 font-medium flex items-center gap-2 flex-wrap">
+<span class="bg-white px-2 py-0.5 rounded border border-pink-100 font-bold text-slate-700">Truck 830</span>
+<span class="">•</span>
+<span class="">Tkt 20048</span>
+<span class="">•</span>
+<span class="font-bold text-slate-800">17.00 t</span>
+<span class="">•</span>
+<span class="text-pink-700 font-semibold">COD/CARD</span>
+</div>
+</div>
+<div class="text-right flex-shrink-0">
+<span class="text-base font-black text-slate-900 font-mono block">$149.60</span>
+<div class="flex items-center justify-end gap-1.5 mt-1 opacity-0 group-hover:opacity-100 transition">
+<button class="text-pink-600 hover:text-pink-800 p-1 text-xs" title="Print Ticket" type="button">
+<i class="fa-solid fa-print"></i>
+</button>
+<button class="text-slate-400 hover:text-pink-600 p-1 text-xs" title="View Details" type="button">
+<i class="fa-solid fa-eye"></i>
+</button>
+</div>
+</div>
+</div>
+<!-- Ticket Item 2 -->
+<div class="group bg-pink-50/40 hover:bg-pink-50 border border-pink-100 hover:border-pink-300 rounded-2xl p-3.5 transition-all duration-150 flex items-center justify-between gap-3 shadow-sm">
+<div class="space-y-1">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="font-extrabold text-slate-900 text-sm">GT Services</span>
+<span class="text-pink-400">•</span>
+<span class="text-xs font-bold text-pink-600 tracking-wide">CUSHION SAND</span>
+</div>
+<div class="text-xs text-slate-500 font-medium flex items-center gap-2 flex-wrap">
+<span class="bg-white px-2 py-0.5 rounded border border-pink-100 font-bold text-slate-700">Truck 9207</span>
+<span class="">•</span>
+<span class="">Tkt 20049</span>
+<span class="">•</span>
+<span class="font-bold text-slate-800">18.00 t</span>
+<span class="">•</span>
+<span class="text-pink-700 font-semibold">COD/CARD</span>
+</div>
+</div>
+<div class="text-right flex-shrink-0">
+<span class="text-base font-black text-slate-900 font-mono block">$158.40</span>
+<div class="flex items-center justify-end gap-1.5 mt-1 opacity-0 group-hover:opacity-100 transition">
+<button class="text-pink-600 hover:text-pink-800 p-1 text-xs" title="Print Ticket" type="button">
+<i class="fa-solid fa-print"></i>
+</button>
+<button class="text-slate-400 hover:text-pink-600 p-1 text-xs" title="View Details" type="button">
+<i class="fa-solid fa-eye"></i>
+</button>
+</div>
+</div>
+</div>
+<!-- Ticket Item 3 -->
+<div class="group bg-pink-50/40 hover:bg-pink-50 border border-pink-100 hover:border-pink-300 rounded-2xl p-3.5 transition-all duration-150 flex items-center justify-between gap-3 shadow-sm">
+<div class="space-y-1">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="font-extrabold text-slate-900 text-sm">GT Services</span>
+<span class="text-pink-400">•</span>
+<span class="text-xs font-bold text-pink-600 tracking-wide">CUSHION SAND</span>
+</div>
+<div class="text-xs text-slate-500 font-medium flex items-center gap-2 flex-wrap">
+<span class="bg-white px-2 py-0.5 rounded border border-pink-100 font-bold text-slate-700">Truck 9207</span>
+<span class="">•</span>
+<span class="">Tkt 20044</span>
+<span class="">•</span>
+<span class="font-bold text-slate-800">18.00 t</span>
+<span class="">•</span>
+<span class="text-pink-700 font-semibold">COD/CARD</span>
+</div>
+</div>
+<div class="text-right flex-shrink-0">
+<span class="text-base font-black text-slate-900 font-mono block">$158.40</span>
+<div class="flex items-center justify-end gap-1.5 mt-1 opacity-0 group-hover:opacity-100 transition">
+<button class="text-pink-600 hover:text-pink-800 p-1 text-xs" title="Print Ticket" type="button">
+<i class="fa-solid fa-print"></i>
+</button>
+<button class="text-slate-400 hover:text-pink-600 p-1 text-xs" title="View Details" type="button">
+<i class="fa-solid fa-eye"></i>
+</button>
+</div>
+</div>
+</div>
+<!-- Ticket Item 4 -->
+<div class="group bg-pink-50/40 hover:bg-pink-50 border border-pink-100 hover:border-pink-300 rounded-2xl p-3.5 transition-all duration-150 flex items-center justify-between gap-3 shadow-sm">
+<div class="space-y-1">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="font-extrabold text-slate-900 text-sm">GT Services</span>
+<span class="text-pink-400">•</span>
+<span class="text-xs font-bold text-pink-600 tracking-wide">CUSHION SAND</span>
+</div>
+<div class="text-xs text-slate-500 font-medium flex items-center gap-2 flex-wrap">
+<span class="bg-white px-2 py-0.5 rounded border border-pink-100 font-bold text-slate-700">Truck 9207</span>
+<span class="">•</span>
+<span class="">Tkt 20035</span>
+<span class="">•</span>
+<span class="font-bold text-slate-800">18.00 t</span>
+<span class="">•</span>
+<span class="text-pink-700 font-semibold">COD/CARD</span>
+</div>
+</div>
+<div class="text-right flex-shrink-0">
+<span class="text-base font-black text-slate-900 font-mono block">$158.40</span>
+<div class="flex items-center justify-end gap-1.5 mt-1 opacity-0 group-hover:opacity-100 transition">
+<button class="text-pink-600 hover:text-pink-800 p-1 text-xs" title="Print Ticket" type="button">
+<i class="fa-solid fa-print"></i>
+</button>
+<button class="text-slate-400 hover:text-pink-600 p-1 text-xs" title="View Details" type="button">
+<i class="fa-solid fa-eye"></i>
+</button>
+</div>
+</div>
+</div>
+<!-- Ticket Item 5 -->
+<div class="group bg-pink-50/40 hover:bg-pink-50 border border-pink-100 hover:border-pink-300 rounded-2xl p-3.5 transition-all duration-150 flex items-center justify-between gap-3 shadow-sm">
+<div class="space-y-1">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="font-extrabold text-slate-900 text-sm">GT Services</span>
+<span class="text-pink-400">•</span>
+<span class="text-xs font-bold text-pink-600 tracking-wide">CUSHION SAND</span>
+</div>
+<div class="text-xs text-slate-500 font-medium flex items-center gap-2 flex-wrap">
+<span class="bg-white px-2 py-0.5 rounded border border-pink-100 font-bold text-slate-700">Truck 9207</span>
+<span class="">•</span>
+<span class="">Tkt 20033</span>
+<span class="">•</span>
+<span class="font-bold text-slate-800">18.00 t</span>
+<span class="">•</span>
+<span class="text-pink-700 font-semibold">COD/CARD</span>
+</div>
+</div>
+<div class="text-right flex-shrink-0">
+<span class="text-base font-black text-slate-900 font-mono block">$158.40</span>
+<div class="flex items-center justify-end gap-1.5 mt-1 opacity-0 group-hover:opacity-100 transition">
+<button class="text-pink-600 hover:text-pink-800 p-1 text-xs" title="Print Ticket" type="button">
+<i class="fa-solid fa-print"></i>
+</button>
+<button class="text-slate-400 hover:text-pink-600 p-1 text-xs" title="View Details" type="button">
+<i class="fa-solid fa-eye"></i>
+</button>
+</div>
+</div>
+</div>
+<!-- Ticket Item 6 -->
+<div class="group bg-pink-50/40 hover:bg-pink-50 border border-pink-100 hover:border-pink-300 rounded-2xl p-3.5 transition-all duration-150 flex items-center justify-between gap-3 shadow-sm">
+<div class="space-y-1">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="font-extrabold text-slate-900 text-sm">GT Services</span>
+<span class="text-pink-400">•</span>
+<span class="text-xs font-bold text-pink-600 tracking-wide">CUSHION SAND</span>
+</div>
+<div class="text-xs text-slate-500 font-medium flex items-center gap-2 flex-wrap">
+<span class="bg-white px-2 py-0.5 rounded border border-pink-100 font-bold text-slate-700">Truck 9207</span>
+<span class="">•</span>
+<span class="">Tkt 20029</span>
+<span class="">•</span>
+<span class="font-bold text-slate-800">18.00 t</span>
+<span class="">•</span>
+<span class="text-pink-700 font-semibold">COD/CARD</span>
+</div>
+</div>
+<div class="text-right flex-shrink-0">
+<span class="text-base font-black text-slate-900 font-mono block">$158.40</span>
+<div class="flex items-center justify-end gap-1.5 mt-1 opacity-0 group-hover:opacity-100 transition">
+<button class="text-pink-600 hover:text-pink-800 p-1 text-xs" title="Print Ticket" type="button">
+<i class="fa-solid fa-print"></i>
+</button>
+<button class="text-slate-400 hover:text-pink-600 p-1 text-xs" title="View Details" type="button">
+<i class="fa-solid fa-eye"></i>
+</button>
+</div>
+</div>
+</div>
+<!-- Ticket Item 7 -->
+<div class="group bg-pink-50/40 hover:bg-pink-50 border border-pink-100 hover:border-pink-300 rounded-2xl p-3.5 transition-all duration-150 flex items-center justify-between gap-3 shadow-sm">
+<div class="space-y-1">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="font-extrabold text-slate-900 text-sm">TRI-DAL</span>
+<span class="text-pink-400">•</span>
+<span class="text-xs font-bold text-pink-600 tracking-wide">CUSHION SAND</span>
+</div>
+<div class="text-xs text-slate-500 font-medium flex items-center gap-2 flex-wrap">
+<span class="bg-white px-2 py-0.5 rounded border border-pink-100 font-bold text-slate-700">Truck 830</span>
+<span class="">•</span>
+<span class="">Tkt 20047</span>
+<span class="">•</span>
+<span class="font-bold text-slate-800">17.00 t</span>
+<span class="">•</span>
+<span class="text-pink-700 font-semibold">COD/CARD</span>
+</div>
+</div>
+<div class="text-right flex-shrink-0">
+<span class="text-base font-black text-slate-900 font-mono block">$149.60</span>
+<div class="flex items-center justify-end gap-1.5 mt-1 opacity-0 group-hover:opacity-100 transition">
+<button class="text-pink-600 hover:text-pink-800 p-1 text-xs" title="Print Ticket" type="button">
+<i class="fa-solid fa-print"></i>
+</button>
+<button class="text-slate-400 hover:text-pink-600 p-1 text-xs" title="View Details" type="button">
+<i class="fa-solid fa-eye"></i>
+</button>
+</div>
+</div>
+</div>
+<!-- Ticket Item 8 -->
+<div class="group bg-pink-50/40 hover:bg-pink-50 border border-pink-100 hover:border-pink-300 rounded-2xl p-3.5 transition-all duration-150 flex items-center justify-between gap-3 shadow-sm">
+<div class="space-y-1">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="font-extrabold text-slate-900 text-sm">TRI-DAL</span>
+<span class="text-pink-400">•</span>
+<span class="text-xs font-bold text-pink-600 tracking-wide">CUSHION SAND</span>
+</div>
+<div class="text-xs text-slate-500 font-medium flex items-center gap-2 flex-wrap">
+<span class="bg-white px-2 py-0.5 rounded border border-pink-100 font-bold text-slate-700">Truck 830</span>
+<span class="">•</span>
+<span class="">Tkt 20041</span>
+<span class="">•</span>
+<span class="font-bold text-slate-800">17.00 t</span>
+<span class="">•</span>
+<span class="text-pink-700 font-semibold">COD/CARD</span>
+</div>
+</div>
+<div class="text-right flex-shrink-0">
+<span class="text-base font-black text-slate-900 font-mono block">$149.60</span>
+<div class="flex items-center justify-end gap-1.5 mt-1 opacity-0 group-hover:opacity-100 transition">
+<button class="text-pink-600 hover:text-pink-800 p-1 text-xs" title="Print Ticket" type="button">
+<i class="fa-solid fa-print"></i>
+</button>
+<button class="text-slate-400 hover:text-pink-600 p-1 text-xs" title="View Details" type="button">
+<i class="fa-solid fa-eye"></i>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- List Bottom Pagination / Action Link -->
+<div class="mt-4 pt-3 border-t border-pink-100 flex items-center justify-between text-xs text-pink-700">
+<span class="font-semibold">Showing recent 8 of 33 today</span>
+<button class="font-extrabold hover:text-pink-900 flex items-center gap-1" type="button">
+<span class="">View Full Dispatch Archive</span>
+<i class="fa-solid fa-arrow-right text-[10px]"></i>
+</button>
+</div>
+</div>
+<!-- Daily Operational Metrics KPI Summary Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5" data-purpose="daily-metrics-kpi">
+<!-- Metric 1: Daily Gross -->
+<div class="bg-white rounded-2xl p-4 border border-pink-200 shadow-sm relative overflow-hidden">
+<div class="flex items-center justify-between">
+<span class="text-[10px] uppercase tracking-wider font-extrabold text-pink-600">Daily Gross</span>
+<span class="w-6 h-6 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center text-xs">
+<i class="fa-solid fa-dollar-sign"></i>
+</span>
+</div>
+<p class="text-xl sm:text-2xl font-black text-pink-950 font-mono mt-1">$5,312.80</p>
+<p class="text-[10px] text-pink-700 mt-0.5 font-bold flex items-center gap-1">
+<i class="fa-solid fa-arrow-trend-up text-emerald-600"></i> +14.2% vs yesterday
+              </p>
+</div>
+<!-- Metric 2: Total Scale Tickets -->
+<div class="bg-white rounded-2xl p-4 border border-pink-200 shadow-sm relative overflow-hidden">
+<div class="flex items-center justify-between">
+<span class="text-[10px] uppercase tracking-wider font-extrabold text-pink-600">Scale Tickets</span>
+<span class="w-6 h-6 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center text-xs">
+<i class="fa-solid fa-ticket-simple"></i>
+</span>
+</div>
+<p class="text-xl sm:text-2xl font-black text-pink-950 font-mono mt-1">33 Tickets</p>
+<p class="text-[10px] text-pink-700 mt-0.5 font-bold">Avg. 10.8 t per ticket</p>
+</div>
+<!-- Metric 3: Active Pit Status -->
+
+</div>
+</section>
+<!-- END: Right Column - Today's Tickets & Scale Log -->
+</div>
+<!-- Quick Action Navigation Tabs Footer Bar (Matching Image 1 bottom buttons) -->
+
+</main>
+<!-- END: Main Dashboard Content -->
+<!-- BEGIN: Footer -->
+<footer class="bg-white/80 border-t border-pink-200 py-3 text-center text-xs text-pink-700 font-semibold" data-purpose="app-footer">
+<div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+<p class="flex items-center gap-1 justify-center">
+<span class="">🎀</span>
+<span class="">ASG Operations Platform © 2026. Certified Scale House Terminal PIT #2.</span>
+</p>
+<div class="flex items-center gap-3 text-[11px] text-pink-500">
+<span class="">Scale Protocol: W&amp;M NTEP 99-014</span>
+<span class="">•</span>
+<span class="text-pink-700 font-bold">All rights reserved</span>
+</div>
+</div>
+</footer>
+<!-- END: Footer -->
+</div>
+<!-- END: Application Shell -->
+<!-- BEGIN: Interactive Calculator and Ticket Feeder Script -->
+<script data-purpose="form-calculator-and-event-handling">
+    document.addEventListener('DOMContentLoaded', () => {
+      // DOM Elements
+      const materialSelect = document.getElementById('material-select');
+      const tonsInput = document.getElementById('tons-input');
+      const truckInput = document.getElementById('truck-input');
+      const ticketInput = document.getElementById('ticket-input');
+      const customerInput = document.getElementById('customer-input');
+      const paymentSelect = document.getElementById('payment-select');
+      const codMethodSelect = document.getElementById('cod-method-select');
+      
+      const unitRateLabel = document.getElementById('unit-rate-label');
+      const calcBreakdown = document.getElementById('calculation-breakdown');
+      const grossDisplay = document.getElementById('gross-total-display');
+      
+      const form = document.getElementById('material-entry-form');
+      const clearBtn = document.getElementById('clear-form-btn');
+      const resetBtn = document.getElementById('form-reset-btn');
+      const ticketsContainer = document.getElementById('tickets-container');
+      const ticketCountBadge = document.getElementById('ticket-count-badge');
+
+      let currentTicketCount = 33;
+
+      // Function to recalculate gross amount
+      function updateCalculation() {
+        const rate = parseFloat(materialSelect.value) || 0;
+        const tons = parseFloat(tonsInput.value) || 0;
+        const gross = rate * tons;
+        const paymentType = paymentSelect.value;
+
+        // Update rate label
+        unitRateLabel.textContent = `Rate: $${rate.toFixed(2)} / ton`;
+        
+        // Update breakdown string
+        calcBreakdown.textContent = `${paymentType} → ${tons.toFixed(2)} t × $${rate.toFixed(2)}`;
+        
+        // Update gross total
+        grossDisplay.textContent = `$${gross.toFixed(2)}`;
+      }
+
+      // Add listeners for dynamic calculation
+      materialSelect.addEventListener('change', updateCalculation);
+      tonsInput.addEventListener('input', updateCalculation);
+      paymentSelect.addEventListener('change', updateCalculation);
+
+      // Handle Clear button
+      function clearFormFields() {
+        truckInput.value = '';
+        tonsInput.value = '';
+        customerInput.value = '';
+        grossDisplay.textContent = '$0.00';
+        calcBreakdown.textContent = 'COD → 0.00 t × $0.00';
+        truckInput.focus();
+      }
+
+      clearBtn.addEventListener('click', clearFormFields);
+      resetBtn.addEventListener('click', clearFormFields);
+
+      // Handle Form Submission (Save Ticket)
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const truckVal = truckInput.value.trim() || '9207';
+        const ticketVal = ticketInput.value.trim() || String(20050 + currentTicketCount - 32);
+        const tonsVal = parseFloat(tonsInput.value) || 18.00;
+        const customerVal = customerInput.value.trim() || 'GT Services';
+        const selectedMaterialOpt = materialSelect.options[materialSelect.selectedIndex];
+        const materialName = selectedMaterialOpt.getAttribute('data-name') || 'CUSHION SAND';
+        const rate = parseFloat(materialSelect.value) || 8.80;
+        const grossTotal = (tonsVal * rate).toFixed(2);
+        const methodVal = codMethodSelect.value;
+
+        // Create new ticket card with Hello Kitty cute pink styling
+        const newTicketCard = document.createElement('div');
+        newTicketCard.className = 'group bg-rose-50/70 border-2 border-pink-300 rounded-2xl p-3.5 transition-all duration-150 flex items-center justify-between gap-3 shadow-sm animate-pulse';
+        
+        newTicketCard.innerHTML = `
+          <div class="space-y-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-extrabold text-slate-900 text-sm">${customerVal}</span>
+              <span class="text-pink-400">•</span>
+              <span class="text-xs font-bold text-pink-600 tracking-wide">${materialName}</span>
+              <span class="bg-pink-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase">NEW</span>
+            </div>
+            <div class="text-xs text-slate-500 font-medium flex items-center gap-2 flex-wrap">
+              <span class="bg-white px-2 py-0.5 rounded border border-pink-100 font-bold text-slate-700">Truck ${truckVal}</span>
+              <span>•</span>
+              <span>Tkt ${ticketVal}</span>
+              <span>•</span>
+              <span class="font-bold text-slate-800">${tonsVal.toFixed(2)} t</span>
+              <span>•</span>
+              <span class="text-pink-700 font-semibold">COD/${methodVal}</span>
+            </div>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <span class="text-base font-black text-pink-700 font-mono block">$${grossTotal}</span>
+            <span class="text-[10px] text-emerald-600 font-bold block">✓ Printed</span>
+          </div>
+        `;
+
+        // Prepend new ticket to feed
+        ticketsContainer.insertBefore(newTicketCard, ticketsContainer.firstChild);
+
+        // Update ticket count badge
+        currentTicketCount++;
+        ticketCountBadge.textContent = `(${currentTicketCount})`;
+
+        // Increment ticket # for next entry
+        const numericTicket = parseInt(ticketVal, 10);
+        if (!isNaN(numericTicket)) {
+          ticketInput.value = numericTicket + 1;
+        }
+
+        // Brief feedback pulse removal
+        setTimeout(() => {
+          newTicketCard.classList.remove('animate-pulse');
+        }, 1200);
+
+        // Reset truck & tons for the next rapid entry
+        truckInput.value = '';
+        tonsInput.value = '';
+        truckInput.focus();
+      });
+
+      // Initial calculation run
+      updateCalculation();
+    });
+  </script>
+<!-- END: Interactive Calculator and Ticket Feeder Script -->
+
+
+</body></html>
