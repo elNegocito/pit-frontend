@@ -4,5 +4,6 @@ import type { Role } from "@/lib/types";
 export function homeFor(role: Role | null | undefined): string {
   if (role === "operator") return "/entry";
   if (role === "payroll") return "/payroll";
+  if (role === "ctal_viewer") return "/ctal/weeks";
   return "/dashboard";
 }

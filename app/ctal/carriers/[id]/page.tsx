@@ -9,6 +9,7 @@ import { btn, card } from "@/lib/ctal/ui";
 import { CarrierDocuments } from "@/components/ctal/CarrierDocuments";
 import { CarrierForm } from "@/components/ctal/CarrierForm";
 import { InsuranceBadge } from "@/components/ctal/InsuranceBadge";
+import { DeleteRecordButton } from "@/components/ctal/DeleteRecordButton";
 
 export default async function CarrierPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ created?: string }> }) {
   await requireAdmin();
@@ -91,6 +92,14 @@ export default async function CarrierPage({ params, searchParams }: { params: Pr
             })}
           </ul>
         )}
+      </section>
+
+      <section className={`${card} p-5`} aria-labelledby="delete-h">
+        <h2 id="delete-h" className="text-lg font-semibold">Delete carrier</h2>
+        <p className="mb-3 text-sm text-zinc-600">
+          Only carriers without loads, statements or documents can be deleted. Mark a carrier inactive to keep its history.
+        </p>
+        <DeleteRecordButton kind="carrier" id={c.id} message={`Permanently delete ${c.name} from the carrier registry?`} />
       </section>
     </div>
   );

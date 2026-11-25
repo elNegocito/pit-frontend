@@ -12,16 +12,16 @@ const TABS = [
   { href: "/ctal/help", label: "Tutorials" },
 ];
 
-export function CtalNav() {
+export function CtalNav({ readOnly }: { readOnly: boolean }) {
   const path = usePathname();
   return (
     <header className="border-b border-pine-950 bg-pine-900 text-white print:hidden">
       <div className="mx-auto flex w-full max-w-[1760px] flex-wrap items-center gap-x-6 gap-y-1 px-4">
-        <Link href="/ctal" className="py-3 text-lg font-semibold tracking-tight">
+        <Link href={readOnly ? "/ctal/weeks" : "/ctal"} className="py-3 text-lg font-semibold tracking-tight">
           CTAL
         </Link>
         <nav aria-label="CTAL sections" className="order-last flex w-full gap-1 overflow-x-auto sm:order-none sm:w-auto sm:flex-1">
-          {TABS.map((t) => {
+          {TABS.filter((t) => !readOnly || t.href === "/ctal/weeks").map((t) => {
             const on = t.exact ? path === t.href : path.startsWith(t.href);
             return (
               <Link
@@ -38,9 +38,11 @@ export function CtalNav() {
           })}
         </nav>
         <div className="ml-auto flex items-center gap-2 py-2">
-          <Link href="/dashboard" className="rounded-md px-2.5 py-1.5 text-sm text-pine-200 hover:bg-pine-700 hover:text-white">
-            PIT #2 dashboard
-          </Link>
+          {readOnly ? <span className="text-sm text-pine-200">Read only</span> : (
+            <Link href="/dashboard" className="rounded-md px-2.5 py-1.5 text-sm text-pine-200 hover:bg-pine-700 hover:text-white">
+              PIT #2 dashboard
+            </Link>
+          )}
           <SignOutButton className="rounded-md border border-pine-700 px-2.5 py-1.5 text-sm text-pine-200 hover:bg-pine-700 hover:text-white" />
         </div>
       </div>

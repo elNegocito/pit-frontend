@@ -25,8 +25,6 @@ ON CONFLICT (name_key) DO NOTHING;
 INSERT INTO public.ctal_weeks (week_start, pay_date) VALUES ('2026-01-04', '2026-01-16')
 ON CONFLICT (week_start) DO NOTHING;
 
-DELETE FROM public.ctal_loads WHERE week_id = (SELECT id FROM public.ctal_weeks WHERE week_start = '2026-01-04');
-
 INSERT INTO public.ctal_loads
   (week_id, position, load_date, carrier_id, carrier_name, customer_id, customer_name, bill_to,
    truck, driver, ticket, quantity, unit, broker_rate, carrier_rate, fee_kind, fee_pct, fsc_mode, fsc_value)
@@ -52,4 +50,7 @@ FROM (VALUES
 ) AS v(position, load_date, carrier, customer, truck, driver, ticket, quantity)
 JOIN public.ctal_weeks w ON w.week_start = '2026-01-04'
 JOIN public.ctal_carriers c ON c.name_key = v.carrier
-JOIN public.ctal_customers k ON k.name_key = v.customer;
+JOIN public.ctal_customers k ON k.name_key = v.customer
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.ctal_loads l WHERE l.week_id = w.id AND l.ticket = v.ticket
+);

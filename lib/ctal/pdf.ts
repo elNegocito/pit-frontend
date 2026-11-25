@@ -3,6 +3,7 @@ import autoTable, { type RowInput } from "jspdf-autotable";
 import { formatTicketDate } from "@/lib/timezone";
 import { billingTotal, money, pct, qty, rate, statementTotal, sumLoads, sumProfit, weekLabel, type ProfitRow } from "./compute";
 import { CTAL } from "./config";
+import { LOG_COLUMNS } from "./log";
 import { BILL_TO_LABEL, type BillTo, type Load, type Week } from "./types";
 
 const M = 36;
@@ -47,6 +48,37 @@ function totalsBox(doc: jsPDF, lines: [string, string][], total: [string, string
 
 const d = (iso: string) => formatTicketDate(iso);
 const weekLines = (week: Week, withPayDate = true) => [`Week ${weekLabel(week.week_start)}`, ...(withPayDate ? [`Pay date ${d(week.pay_date)}`] : [])];
+
+export const logFileName = (week: Week) => `CTAL_Log_${week.week_start}.pdf`;
+
+/** Full saved weekly log, with all columns together on each landscape page. */
+export function buildLogPdf(week: Week, rows: Load[]): jsPDF {
+  const doc = new jsPDF({ unit: "pt", format: "tabloid", orientation: "landscape" });
+  const width = doc.internal.pageSize.getWidth() - 2 * M;
+  const totalWidth = LOG_COLUMNS.reduce((sum, col) => sum + col.width, 0);
+  autoTable(doc, {
+    body: rows.length
+      ? rows.map((r, i) => LOG_COLUMNS.map((col) => col.value(r, i)))
+      : [[{ content: "No loads logged for this week.", colSpan: LOG_COLUMNS.length }]],
+    head: [LOG_COLUMNS.map((col) => col.label)],
+    styles: { fontSize: 8, cellPadding: 3 },
+    headStyles: { fillColor: DARK },
+    columnStyles: Object.fromEntries(LOG_COLUMNS.map((col, i) => [
+      i, { cellWidth: width * col.width / totalWidth, halign: col.numeric ? "right" : "left" },
+    ])),
+    margin: { top: 92, left: M, right: M, bottom: 36 },
+    showHead: "everyPage",
+    rowPageBreak: "avoid",
+    willDrawPage: () => {
+      header(doc, "Weekly load log", [...weekLines(week), `${rows.length} saved loads`]);
+    },
+    didDrawPage: ({ pageNumber }) => {
+      doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(90);
+      doc.text(`Page ${pageNumber}`, doc.internal.pageSize.getWidth() - M, doc.internal.pageSize.getHeight() - 18, { align: "right" });
+    },
+  });
+  return doc;
+}
 
 export const statementFileName = (week: Week, carrier: string) => `CTAL_Statement_${slug(carrier)}_${week.week_start}.pdf`;
 

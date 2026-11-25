@@ -1,14 +1,13 @@
 "use client";
 
-import { useActionState, useTransition } from "react";
-import { deleteWeek, updateWeek } from "@/lib/ctal/actions";
+import { useActionState } from "react";
+import { updateWeek } from "@/lib/ctal/actions";
 import type { Week } from "@/lib/ctal/types";
-import { btn, btnDanger, input } from "@/lib/ctal/ui";
+import { btn, input } from "@/lib/ctal/ui";
 
-/** Pay date (when the Friday moves for a holiday) and removing an empty week. */
-export function WeekSettings({ week, empty }: { week: Week; empty: boolean }) {
+/** Pay date (when the Friday moves for a holiday). */
+export function WeekSettings({ week }: { week: Week }) {
   const [state, action, pending] = useActionState(updateWeek, null);
-  const [deleting, start] = useTransition();
   return (
     <form action={action} className="flex flex-wrap items-end gap-2">
       <input type="hidden" name="id" value={week.id} />
@@ -20,18 +19,6 @@ export function WeekSettings({ week, empty }: { week: Week; empty: boolean }) {
       <button disabled={pending} className={btn}>
         Save pay date
       </button>
-      {empty && (
-        <button
-          type="button"
-          disabled={deleting}
-          className={btnDanger}
-          onClick={() => {
-            if (confirm("Delete this empty week?")) start(async () => void (await deleteWeek(week.id)));
-          }}
-        >
-          Delete week
-        </button>
-      )}
       {state && <p className="w-full text-sm text-red-700">{state}</p>}
     </form>
   );
