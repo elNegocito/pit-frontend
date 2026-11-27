@@ -12,6 +12,7 @@ const PROTECTED_PREFIXES = [
   "/payroll",
   "/trucking-production",
   "/ctal",
+  "/roll-off",
 ];
 
 export async function updateSession(request: NextRequest) {

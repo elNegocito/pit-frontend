@@ -132,6 +132,9 @@ export default async function DashboardPage({
           <Link href="/ctal" className="rounded-lg border bg-white px-3 py-1.5 text-sm hover:bg-zinc-50">
             CTAL
           </Link>
+          <Link href="/roll-off" className="rounded-lg border bg-white px-3 py-1.5 text-sm hover:bg-zinc-50">
+            Roll-off dispatch
+          </Link>
           <SignOutButton />
         </div>
       </div>
