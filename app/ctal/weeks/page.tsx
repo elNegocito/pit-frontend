@@ -1,16 +1,18 @@
 import Link from "next/link";
-import { requireAdmin } from "@/lib/auth";
+import { requireCtalReader } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { addDays, formatTicketDate, todayInPit } from "@/lib/timezone";
 import { billingTotal, money, statementTotal, sumLoads, weekLabel, weekStartOf } from "@/lib/ctal/compute";
 import { toLoad, WEEK_SELECT, type Load, type Week } from "@/lib/ctal/types";
 import { card, td, th } from "@/lib/ctal/ui";
 import { NewWeekForm } from "@/components/ctal/NewWeekForm";
+import { GlobalSearch } from "@/components/ctal/GlobalSearch";
 
 const SUMMARY = "week_id, carrier_id, carrier_name, bill_to, quantity, carrier_amount, broker_amount, broker_fee, quick_pay_fee, fsc_amount";
 
 export default async function WeeksPage() {
-  await requireAdmin();
+  const { role } = await requireCtalReader();
+  const readOnly = role === "ctal_viewer";
   const supabase = await createClient();
   const { data } = await supabase.from("ctal_weeks").select(WEEK_SELECT).order("week_start", { ascending: false }).limit(60);
   const weeks = (data ?? []) as Week[];
@@ -33,10 +35,13 @@ export default async function WeeksPage() {
           <h1 className="text-2xl font-semibold tracking-tight">Weeks</h1>
           <p className="max-w-2xl text-sm text-zinc-600">One log per week, Sunday to Saturday. Every week stays here, so an old statement can be opened and printed again.</p>
         </div>
-        <NewWeekForm suggested={suggested} />
+        {!readOnly && <NewWeekForm suggested={suggested} />}
       </div>
+      {readOnly && <div className="mb-5"><GlobalSearch weeks={weeks} /></div>}
       {weeks.length === 0 ? (
-        <p className={`${card} px-4 py-10 text-center text-sm text-zinc-600`}>No weeks yet. Pick a day above and start the first one.</p>
+        <p className={`${card} px-4 py-10 text-center text-sm text-zinc-600`}>
+          {readOnly ? "No weeks yet." : "No weeks yet. Pick a day above and start the first one."}
+        </p>
       ) : (
         <div className={`${card} overflow-x-auto`}>
           <table className="w-full border-collapse">

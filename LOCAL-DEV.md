@@ -90,9 +90,17 @@ La migración 012 crea las tablas `ctal_*` y el bucket privado `ctal-docs` (sin 
 
 ```bash
 docker exec -i supabase_db_pit-frontend psql -U postgres -d postgres < supabase/dev/ctal-sample-week.sql
+docker exec -i supabase_db_pit-frontend psql -U postgres -d postgres < supabase/dev/ctal-feature-demo.sql
 ```
 
 Entra como `admin@asgoperations.com` en `/ctal`; los totales esperados están en la cabecera del `.sql`.
+
+- Abre la semana del **4 al 10 de enero de 2026** y pulsa **Download full log PDF**. El PDF incluye las 12 cargas guardadas, aunque haya un filtro activo.
+- Como `ctal-viewer@asgoperations.com` / `password123`, busca el ticket `50001` en `/ctal/weeks`. Puedes ver, filtrar y exportar el log, pero no editar, crear ni eliminar registros.
+- Como admin, puedes borrar **CTAL DEMO UNUSED CARRIER** desde su ficha. Los carriers con cargas o statements se conservan: márcalos inactivos. Si un carrier tiene documentos, elimínalos antes desde su ficha.
+- **Delete week** borra definitivamente la semana, sus cargas y sus statements. Exporta el PDF antes si quieres conservar una copia del log.
+
+Para dar acceso a una cuenta real, créala en Supabase Auth y asigna `ctal_viewer` en `public.profiles`. Este rol puede ver todas las semanas y los importes del log, pero no las fichas de carriers, los documentos ni las pantallas de administración. No uses las credenciales de prueba fuera de local.
 
 > **El repo de GitHub es público.** Los datos reales del cliente (su semana de Excel, sus customers y rates) no se versionan: viven en `supabase/dev/private/` (ignorado por git).
 

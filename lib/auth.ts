@@ -27,10 +27,17 @@ export async function requireAdmin(): Promise<{ id: string }> {
   return u;
 }
 
-/** Ticket screens (operator + admin). Payroll users never see tickets. */
+/** Ticket screens (operator + admin). */
 export async function requireTicketUser(): Promise<{ id: string; role: Role }> {
   const u = await requireUser();
-  if (u.role === "payroll") redirect(homeFor(u.role));
+  if (u.role !== "admin" && u.role !== "operator") redirect(homeFor(u.role));
+  return u;
+}
+
+/** CTAL weekly logs and exports (admin + read-only viewer). */
+export async function requireCtalReader() {
+  const u = await requireUser();
+  if (u.role !== "admin" && u.role !== "ctal_viewer") redirect(homeFor(u.role));
   return u;
 }
 

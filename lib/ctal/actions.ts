@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { requireAdmin } from "@/lib/auth";
+import { requireAdmin, requireCtalReader } from "@/lib/auth";
 import { payDateOf, weekStartOf } from "./compute";
 import {
   BILL_TO,
@@ -120,6 +120,21 @@ export async function saveCarrier(_prev: FormState, form: FormData): Promise<For
   if (error) return carrierError(error, parsed.name);
   revalidatePath("/ctal", "layout");
   redirect(`/ctal/carriers/${data.id}?created=1`);
+}
+
+export async function deleteCarrier(id: string): Promise<FormState> {
+  await requireAdmin();
+  if (!UUID.test(id)) return "Carrier not found.";
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("ctal_carriers").delete().eq("id", id).select("id").maybeSingle();
+  if (error?.code === "23503") {
+    if (error.message.includes("ctal_carrier_documents")) return "Remove this carrier’s documents before deleting it.";
+    return "This carrier has loads or statements. Mark it inactive to keep the history.";
+  }
+  if (error) return "The carrier could not be deleted. Try again.";
+  if (!data) return "Carrier not found.";
+  revalidatePath("/ctal", "layout");
+  redirect("/ctal/carriers");
 }
 
 /** Carriers pasted from the Google Sheet. Names already in the list are skipped. */
@@ -313,11 +328,12 @@ export async function updateWeek(_prev: FormState, form: FormData): Promise<Form
 
 export async function deleteWeek(id: string): Promise<FormState> {
   await requireAdmin();
+  if (!UUID.test(id)) return "Week not found.";
   const supabase = await createClient();
-  const { count } = await supabase.from("ctal_loads").select("id", { count: "exact", head: true }).eq("week_id", id);
-  if ((count ?? 0) > 0) return "This week has loads. Delete its rows first.";
-  const { error } = await supabase.from("ctal_weeks").delete().eq("id", id);
+  // Both loads and statements cascade from the week in the same transaction.
+  const { data, error } = await supabase.from("ctal_weeks").delete().eq("id", id).select("id").maybeSingle();
   if (error) return "The week could not be deleted. Try again.";
+  if (!data) return "Week not found.";
   revalidatePath("/ctal", "layout");
   redirect("/ctal/weeks");
 }
@@ -430,7 +446,7 @@ export interface TicketHit {
 
 /** Tickets whose number contains `q` (the home search; carriers are matched in the browser). */
 export async function searchTickets(q: string): Promise<TicketHit[]> {
-  await requireAdmin();
+  await requireCtalReader();
   const term = text(q, 40).replace(/[%_\\]/g, "");
   if (term.length < 2) return [];
   const supabase = await createClient();

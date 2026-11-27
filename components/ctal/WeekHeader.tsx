@@ -10,7 +10,7 @@ const TABS = [
   { key: "profit", label: "Broker profit", path: "/profit" },
 ] as const;
 
-export function WeekHeader({ week, active, children }: { week: Week; active: (typeof TABS)[number]["key"]; children?: React.ReactNode }) {
+export function WeekHeader({ week, active, readOnly = false, children }: { week: Week; active: (typeof TABS)[number]["key"]; readOnly?: boolean; children?: React.ReactNode }) {
   return (
     <div className="mb-4 print:hidden">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -23,7 +23,7 @@ export function WeekHeader({ week, active, children }: { week: Week; active: (ty
         </div>
         {children}
       </div>
-      <nav aria-label="Week sections" className="mt-4 flex gap-1 overflow-x-auto border-b border-rule">
+      {!readOnly && <nav aria-label="Week sections" className="mt-4 flex gap-1 overflow-x-auto border-b border-rule">
         {TABS.map((t) => (
           <Link
             key={t.key}
@@ -36,7 +36,7 @@ export function WeekHeader({ week, active, children }: { week: Week; active: (ty
             {t.label}
           </Link>
         ))}
-      </nav>
+      </nav>}
     </div>
   );
 }
