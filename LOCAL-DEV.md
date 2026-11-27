@@ -62,7 +62,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key / publishable key que imprimió supabase
 ## 4. Crear el esquema y los datos de prueba
 
 ```bash
-# Borra la BD local y aplica TODAS las migraciones (001 → 006) + seed.sql
+# Borra la BD local y aplica todas las migraciones del repo + seed.sql
 pnpm supabase db reset
 
 # Usuarios de prueba, roles, nombres de weighmaster, trucks, customers y orders de ejemplo
@@ -86,7 +86,7 @@ Cada vez que quieras empezar de cero, repite los dos comandos de este paso.
 
 ### CTAL (carriers, log semanal, statements)
 
-La migración 012 crea las tablas `ctal_*` y el bucket privado `ctal-docs` (sin datos). Para tener una semana de ejemplo, con carriers y customers **ficticios** que ejercitan todas las reglas:
+La migración `20261109235733_ctal.sql` crea las tablas `ctal_*` y el bucket privado `ctal-docs` (sin datos). La migración `20261127000000_ctal_viewer_and_deletion.sql` agrega el rol de solo lectura y las protecciones de borrado. Para tener una semana de ejemplo, con carriers y customers **ficticios** que ejercitan todas las reglas:
 
 ```bash
 docker exec -i supabase_db_pit-frontend psql -U postgres -d postgres < supabase/dev/ctal-sample-week.sql
@@ -105,6 +105,8 @@ Para dar acceso a una cuenta real, créala en Supabase Auth y asigna `ctal_viewe
 > **El repo de GitHub es público.** Los datos reales del cliente (su semana de Excel, sus customers y rates) no se versionan: viven en `supabase/dev/private/` (ignorado por git).
 
 Si ya tenías la BD local levantada y no quieres borrarla, `pnpm supabase migration up` aplica sólo las migraciones que falten.
+
+Si tu BD ya tenía los IDs antiguos `006`–`013`, revisa `pnpm supabase migration list --local` antes de aplicar migraciones: esos archivos se renombraron para coincidir con el historial de producción. No vuelvas a ejecutar su SQL sobre una BD que ya lo tiene aplicado.
 
 El email automático de statements usa la Edge Function `send-carrier-statement`; en local, sin secrets de Gmail, la app descarga el PDF y abre el programa de correo.
 
@@ -194,7 +196,7 @@ Orden recomendado:
 
 ## 9b. Payroll (migración 008) a producción
 
-1. Respaldo (igual que arriba) y `pnpm supabase db push` → aplica solo `008_payroll.sql` (solo **agrega** tablas; lo único que toca de lo existente es permitir el rol `payroll` en `profiles.role`).
+1. Haz un respaldo (igual que arriba) y revisa `pnpm supabase db push --linked --dry-run --skip-vault` antes de aplicar pendientes. La migración de Payroll es `20261020193509_payroll.sql`.
 2. Crear los 2 usuarios de payroll en Supabase Auth (Authentication > Users > Create user) y darles el rol y su nombre (es el que sale en el historial):
    ```sql
    INSERT INTO public.profiles (id, role, display_name)
