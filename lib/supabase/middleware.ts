@@ -10,6 +10,7 @@ const PROTECTED_PREFIXES = [
   "/trucks",
   "/job-orders",
   "/payroll",
+  "/trucking-production",
   "/ctal",
 ];
 
